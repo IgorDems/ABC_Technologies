@@ -5,7 +5,7 @@ pipeline {
         stage('Checkout') {
             steps {
                 // Checkout the code from your version control system (e.g., Git)
-                git 'https://your.git.repository/project.git'
+                git 'https://github.com/IgorDems/ABC_Technologies.git'
             }
         }
 

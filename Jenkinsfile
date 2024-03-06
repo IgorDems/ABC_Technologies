@@ -8,11 +8,24 @@ pipeline {
                 git 'https://github.com/IgorDems/ABC_Technologies.git'
             }
         }
-
+		
+		stage('Build') {
+            steps {
+                // Use Maven to compile, test, and package the application
+                bat 'mvn clean compile'
+            }
+        }
+		
+		stage('Test') {
+            steps {
+                // Use Maven to compile, test, and package the application
+                bat 'mvn test'
+            }
+        }
         stage('Build') {
             steps {
                 // Use Maven to compile, test, and package the application
-                bat 'mvn clean compile test package'
+                bat 'mvn package'
             }
         }
     }

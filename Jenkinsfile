@@ -1,7 +1,5 @@
 pipeline {
- //   agent {
- //       label 'your-ubuntu-label'
- //   }
+    agent any
 
 //    environment {
 //       MAVEN_HOME = '/path/to/your/maven'

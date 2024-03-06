@@ -9,7 +9,7 @@ pipeline {
             }
         }
 		
-		stage('Build') {
+		stage('Compile') {
             steps {
                 // Use Maven to compile, test, and package the application
                 bat 'mvn clean compile'

@@ -1,5 +1,12 @@
 pipeline {
-    agent any
+ //   agent {
+ //       label 'your-ubuntu-label'
+ //   }
+
+//    environment {
+//       MAVEN_HOME = '/path/to/your/maven'
+//        PATH = "$MAVEN_HOME/bin:$PATH"
+//    }
 
     stages {
         stage('Checkout') {

@@ -22,6 +22,12 @@ pipeline {
                 bat 'mvn test'
             }
         }
+        stage('Build') {
+            steps {
+                // Use Maven to compile, test, and package the application
+                bat 'mvn package'
+            }
+        }
     }
 
     post {

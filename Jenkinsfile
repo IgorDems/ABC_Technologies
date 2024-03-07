@@ -18,7 +18,7 @@ pipeline {
 		stage('Compile') {
             steps {
                 // Use Maven to compile, test, and package the application
-                bat 'mvn clean compile'
+                sh 'mvn clean compile'
             }
         }
 		
@@ -26,14 +26,14 @@ pipeline {
 		stage('Test') {
             steps {
                 // Use Maven to compile, test, and package the application
-                bat 'mvn test'
+                sh 'mvn test'
             }
         }
 
         stage('Build') {
             steps {
                 // Use Maven to compile, test, and package the application
-                bat 'mvn package'
+                sh 'mvn package'
             }
         }
     }

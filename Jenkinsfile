@@ -1,7 +1,7 @@
 pipeline {
 
     agent {
-        label 'agent_191' // Replace 'your-node-label' with the actual label of your agent
+        label 'agent191' // Replace 'your-node-label' with the actual label of your agent
     }
 
 //    environment {

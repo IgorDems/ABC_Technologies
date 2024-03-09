@@ -1,9 +1,8 @@
 pipeline {
 
-    agent any
-	//{
-    //    label 'agent191' // Replace 'your-node-label' with the actual label of your agent
-    //}
+    agent {
+        label 'agent191' // Replace 'your-node-label' with the actual label of your agent
+    }
 
 //    environment {
 //       MAVEN_HOME = '/path/to/your/maven'

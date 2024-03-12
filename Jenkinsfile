@@ -1,5 +1,8 @@
 pipeline {
-    agent any
+
+    agent {
+        label 'agent191' // Replace 'your-node-label' with the actual label of your agent
+    }
 
 //    environment {
 //       MAVEN_HOME = '/path/to/your/maven'
@@ -14,10 +17,25 @@ pipeline {
             }
         }
 
+		stage('Compile') {
+            steps {
+                // Use Maven to compile, test, and package the application
+                sh 'mvn clean compile'
+            }
+        }
+		
+		
+		stage('Test') {
+            steps {
+                // Use Maven to compile, test, and package the application
+                sh 'mvn test'
+            }
+        }
+
         stage('Build') {
             steps {
                 // Use Maven to compile, test, and package the application
-                sh 'mvn clean compile test package'
+                sh 'mvn package'
             }
         }
     }

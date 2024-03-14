@@ -5,6 +5,6 @@ RUN mkdir /usr/local/tomcat
 ADD https://dlcdn.apache.org/tomcat/tomcat-11/v11.0.0-M17/bin/apache-tomcat-11.0.0-M17.tar.gz  /tmp/apache-tomcat-11.0.0-M17.tar.gz
 RUN cd /tmp &&  tar xvfz apache-tomcat-11.0.0-M17.tar.gz
 RUN cp -Rv /tmp/apache-tomcat-11.0.0-M17/* /usr/local/tomcat/
-ADD **/*.war /usr/local/tomcat/webapps
+ADD /var/jenkins-agent/workspace/PipeLine/target/*.war /usr/local/tomcat/webapps
 EXPOSE 8080
 CMD /usr/local/tomcat/bin/catalina.sh run

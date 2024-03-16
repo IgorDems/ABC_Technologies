@@ -38,16 +38,21 @@ pipeline {
                 sh 'mvn package'
             }
         }
-    }
-
-    post {
-        success {
-            // Add steps to be executed after a successful build
-            echo 'Build successful!'
+		stage('Build Docker Image') {
+            steps {
+                script {
+                    docker.build('ABCtechnologies', '-f Dockerfile .')
+                }
+            }
         }
-        failure {
-            // Add steps to be executed if the build fails
-            echo 'Build failed!'
+        stage('Push to DockerHub') {
+            steps {
+                script {
+                    docker.withRegistry('https://index.docker.io/v1/', 'dockerhub_credentials') {
+                        docker.image('ABCtechnologies').push('latest')
+                    }
+                }
+            }
         }
     }
 }

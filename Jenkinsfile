@@ -49,7 +49,7 @@ pipeline {
             steps {
                 script {
                     docker.withRegistry('https://index.docker.io/v1/', 'dockerhub_credentials') {
-                        docker.image('ABCtechnologies').push('latest')
+                        docker.image('abctechnologies').push('latest')
                     }
                 }
             }

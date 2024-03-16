@@ -41,7 +41,7 @@ pipeline {
 		stage('Build Docker Image') {
             steps {
                 script {
-                    docker.build('ABCtechnologies', '-f Dockerfile .')
+                    docker.build('abctechnologies', '-f Dockerfile .')
                 }
             }
         }

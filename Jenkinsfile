@@ -1,36 +1,44 @@
 pipeline {
-    agent { label 'agent193' }
-
+    agent {
+        label 'agent193'
+    }
+    environment {
+        DOCKER_CREDENTIALS = 'dockerhub_credentials'
+        IMAGE_NAME = 'abctechnologies'
+        WAR_FILE = '/var/jenkins-agent/workspace/DockerTomCatApp/target/ABCtechnologies-1.0.war'
+    }
     stages {
         stage('Compile') {
             steps {
                 sh 'mvn compile'
             }
         }
-
         stage('Test') {
             steps {
                 sh 'mvn test'
             }
         }
-
         stage('Build') {
             steps {
-                sh 'mvn package'
+                sh 'docker build --progress=plain -t ${IMAGE_NAME} .'
             }
         }
-
-        stage('Docker Build and Publish') {
-            environment {
-                DOCKER_HUB_CREDENTIALS = credentials('dockerhub_credentials')
-            }
+        stage('Push to DockerHub') {
             steps {
-                script {
-                    def dockerImage = 'abctechnologies'
-                    def warFilePath = '/var/jenkins-agent/workspace/DockerTomCatApp/target/ABCtechnologies-1.0.war'
-
-                    docker.build("demsdocker/${dockerImage}", "--progress=plain --verbose -f Dockerfile --build-arg WAR_FILE=${warFilePath} .").push()
+                withCredentials([usernamePassword(credentialsId: DOCKER_CREDENTIALS, passwordVariable: 'DOCKER_PASSWORD', usernameVariable: 'DOCKER_USERNAME')]) {
+                    sh "docker login -u ${DOCKER_USERNAME} -p ${DOCKER_PASSWORD}"
+                    sh "docker push ${IMAGE_NAME}"
                 }
+            }
+        }
+        stage('Pull from DockerHub') {
+            steps {
+                sh "docker pull ${IMAGE_NAME}"
+            }
+        }
+        stage('Run Docker Container') {
+            steps {
+                sh "docker run -d -p 8080:8080 --name ${IMAGE_NAME} ${IMAGE_NAME}"
             }
         }
     }

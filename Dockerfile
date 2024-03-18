@@ -8,10 +8,16 @@ ENV TOMCAT_VERSION 11.0.12
 ENV TOMCAT_MAJOR 11
 ENV TOMCAT_HOME /opt/tomcat
 
-# Download Tomcat from the primary URL
-RUN wget -q "https://downloads.apache.org/tomcat/tomcat-${TOMCAT_MAJOR}/v${TOMCAT_VERSION}/bin/apache-tomcat-${TOMCAT_VERSION}.tar.gz" -O /tmp/tomcat.tar.gz || \
-    # If the primary URL fails, try downloading from the mirror
-    wget -q "https://mirrors.estointernet.in/apache/tomcat/tomcat-${TOMCAT_MAJOR}/v${TOMCAT_VERSION}/bin/apache-tomcat-${TOMCAT_VERSION}.tar.gz" -O /tmp/tomcat.tar.gz
+# Retry logic for downloading Tomcat
+RUN retries=5 && \
+    for i in $(seq 1 $retries); do \
+        wget -q "https://downloads.apache.org/tomcat/tomcat-${TOMCAT_MAJOR}/v${TOMCAT_VERSION}/bin/apache-tomcat-${TOMCAT_VERSION}.tar.gz" -O /tmp/tomcat.tar.gz && break || \
+        wget -q "https://mirrors.estointernet.in/apache/tomcat/tomcat-${TOMCAT_MAJOR}/v${TOMCAT_VERSION}/bin/apache-tomcat-${TOMCAT_VERSION}.tar.gz" -O /tmp/tomcat.tar.gz && break || \
+        sleep 5; \
+    done
+
+# Check if the download was successful
+RUN [ -f "/tmp/tomcat.tar.gz" ] || (echo "Failed to download Apache Tomcat" && exit 1)
 
 # Extract Tomcat
 RUN tar xf /tmp/tomcat.tar.gz -C /opt

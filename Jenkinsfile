@@ -17,7 +17,7 @@ pipeline {
         stage('Build') {
             steps {
                 // Add building steps here
-                sh 'mvn package'
+                sh 'mvn -B -DskipTests clean package'
             }
         }
         stage('Wait for File') {

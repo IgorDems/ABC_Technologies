@@ -1,18 +1,22 @@
 FROM ubuntu:22.04
 
-# Install Apache Tomcat 11
-RUN apt-get update && \
-    apt-get install -y wget && \
+# Install Apache Tomcat
+RUN apt-get update && apt-get install -y wget && \
     wget https://downloads.apache.org/tomcat/tomcat-11/v11.0.0-M17/bin/apache-tomcat-11.0.0-M17.tar.gz && \
-    tar -xzvf apache-tomcat-11.0.0-M17.tar.gz && \
+    tar -xzf apache-tomcat-11.0.0-M17.tar.gz && \
     mv apache-tomcat-11.0.0-M17 /opt/tomcat && \
     rm apache-tomcat-11.0.0-M17.tar.gz
 
-# Copy and deploy WAR file to Tomcat
-COPY /var/jenkins-agent/workspace/DockerTomCatApp/target/ABCtechnologies-1.0.war /opt/tomcat/webapps/
+# Set environment variables
+ENV CATALINA_HOME /opt/tomcat
+ENV PATH $CATALINA_HOME/bin:$PATH
 
-# Expose Tomcat port
+# Add the war file to webapps directory
+ARG WAR_FILE
+ADD $WAR_FILE $CATALINA_HOME/webapps/
+
+# Expose port 8080
 EXPOSE 8080
 
-# Start Tomcat server
-CMD ["/opt/tomcat/bin/catalina.sh", "run"]
+# Start Tomcat
+CMD ["catalina.sh", "run"]

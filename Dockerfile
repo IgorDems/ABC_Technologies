@@ -9,7 +9,7 @@ RUN apt-get update && \
     rm apache-tomcat-11.0.0-M17.tar.gz
 
 # Copy and deploy WAR file to Tomcat
-COPY /var/jenkins-agent/workspace/DockerTomCatApp/target/ABCtechnologies-1.0.war /opt/tomcat/webapps/
+ADD /var/jenkins-agent/workspace/DockerTomCatApp/target/ABCtechnologies-1.0.war /opt/tomcat/webapps/
 
 # Expose Tomcat port
 EXPOSE 8080

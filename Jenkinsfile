@@ -1,57 +1,39 @@
 pipeline {
-
-    agent {
-        label 'agent193' // Replace 'your-node-label' with the actual label of your agent
-    }
-
-//    environment {
-//       MAVEN_HOME = '/path/to/your/maven'
-//        PATH = "$MAVEN_HOME/bin:$PATH"
-//    }
+    agent { label 'agent193' }
 
     stages {
-        stage('Checkout') {
+        stage('Compile') {
             steps {
-                // Checkout the code from your version control system (e.g., Git)
-                git 'https://github.com/IgorDems/ABC_Technologies.git'
+                // Add compilation steps here
+                sh 'mvn compile'
             }
         }
-
-		stage('Compile') {
+        stage('Test') {
             steps {
-                // Use Maven to compile, test, and package the application
-                sh 'mvn clean compile'
-            }
-        }
-		
-		
-		stage('Test') {
-            steps {
-                // Use Maven to compile, test, and package the application
+                // Add testing steps here
                 sh 'mvn test'
             }
         }
-
         stage('Build') {
             steps {
-                // Use Maven to compile, test, and package the application
+                // Add building steps here
                 sh 'mvn package'
             }
         }
-		stage('Build Docker Image') {
+        stage('Docker Build & Push') {
             steps {
                 script {
-                    docker.build('abctechnologies', '-f Dockerfile .')
+                    docker.build('demsdocker/abctechnologies:latest', '-f Dockerfile .')
+                    docker.withRegistry('https://index.docker.io/v1/', 'dockerhub_credentials') {
+                        docker.image('demsdocker/abctechnologies:latest').push()
+                    }
                 }
             }
         }
-        stage('Push to DockerHub') {
+        stage('Pull & Run Docker Container') {
             steps {
-                script {
-                    docker.withRegistry('https://index.docker.io/v1/', 'dockerhub_credentials') {
-                        docker.image('abctechnologies').push('latest')
-                    }
-                }
+                sh 'docker pull demsdocker/abctechnologies:latest'
+                sh 'docker run -d -p 8080:8080 --name abctechnologies-container demsdocker/abctechnologies:latest'
             }
         }
     }

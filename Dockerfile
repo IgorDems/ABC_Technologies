@@ -12,8 +12,8 @@ ENV CATALINA_HOME /opt/tomcat
 ENV PATH $CATALINA_HOME/bin:$PATH
 
 # Add the war file to webapps directory
-ARG WAR_FILE
-ADD $WAR_FILE $CATALINA_HOME/webapps/
+#ARG WAR_FILE
+#ADD $WAR_FILE $CATALINA_HOME/webapps/
 
 # Expose port 8080
 EXPOSE 8080

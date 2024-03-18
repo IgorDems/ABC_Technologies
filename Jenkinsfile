@@ -3,19 +3,19 @@ pipeline {
         label 'agent193'
     }
     environment {
-        DOCKER_CREDENTIALS = 'dockerhub_credentials'
+        DOCKER_HUB_TOKEN_CREDENTIALS = 'dockerhub_token_credentials'
         IMAGE_NAME = 'abctechnologies'
         WAR_FILE = '/var/jenkins-agent/workspace/DockerTomCatApp/target/ABCtechnologies-1.0.war'
     }
     stages {
         stage('Compile') {
             steps {
-                sh 'mvn compile'
+                 sh 'mvn compile'
             }
         }
         stage('Test') {
             steps {
-                sh 'mvn test'
+                 sh 'mvn test'
             }
         }
         stage('Build') {
@@ -25,8 +25,8 @@ pipeline {
         }
         stage('Docker Login') {
             steps {
-                withCredentials([usernamePassword(credentialsId: DOCKER_CREDENTIALS, passwordVariable: 'DOCKER_PASSWORD', usernameVariable: 'DOCKER_USERNAME')]) {
-                    sh "docker login -u ${DOCKER_USERNAME} -p ${DOCKER_PASSWORD}"
+                withCredentials([string(credentialsId: DOCKER_HUB_TOKEN_CREDENTIALS, variable: 'DOCKER_TOKEN')]) {
+                    sh "docker login -u _ -p ${DOCKER_TOKEN} docker.io"
                 }
             }
         }

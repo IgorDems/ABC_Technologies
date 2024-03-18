@@ -29,7 +29,7 @@ pipeline {
                     def dockerImage = 'abctechnologies'
                     def warFilePath = '/var/jenkins-agent/workspace/DockerTomCatApp/target/ABCtechnologies-1.0.war'
 
-                    docker.build("demsdocker/${dockerImage}", "-f Dockerfile --build-arg WAR_FILE=${warFilePath} .").push()
+                    docker.build("demsdocker/${dockerImage}", "--progress=plain -t -f Dockerfile --build-arg WAR_FILE=${warFilePath} .").push()
                 }
             }
         }

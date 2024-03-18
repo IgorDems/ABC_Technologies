@@ -17,15 +17,15 @@ pipeline {
         stage('Build') {
             steps {
                 // Add building steps here
-                sh 'mvn -B -DskipTests clean package'
+                sh 'mvn package'
             }
         }
-        stage('Wait for File') {
-            steps {
+//        stage('Wait for File') {
+//            steps {
                 // Add a sleep command to wait for the file to be generated
-                sh 'sleep 30' // Adjust the sleep duration as needed
-            }
-        }
+//                sh 'sleep 30' // Adjust the sleep duration as needed
+//            }
+//        }
         stage('Docker Build & Push') {
             steps {
                 script {

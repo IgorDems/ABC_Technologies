@@ -23,12 +23,21 @@ pipeline {
                 sh 'docker build --progress=plain -t ${IMAGE_NAME} .'
             }
         }
-        stage('Push to DockerHub') {
+        stage('Docker Login') {
             steps {
                 withCredentials([usernamePassword(credentialsId: DOCKER_CREDENTIALS, passwordVariable: 'DOCKER_PASSWORD', usernameVariable: 'DOCKER_USERNAME')]) {
                     sh "docker login -u ${DOCKER_USERNAME} -p ${DOCKER_PASSWORD}"
-                    sh "docker push ${IMAGE_NAME}"
                 }
+            }
+        }
+        stage('Push to DockerHub') {
+            steps {
+                sh "docker push ${IMAGE_NAME}"
+            }
+        }
+        stage('Docker Logout') {
+            steps {
+                sh "docker logout"
             }
         }
         stage('Pull from DockerHub') {

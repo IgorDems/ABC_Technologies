@@ -3,51 +3,44 @@ pipeline {
         label 'agent193'
     }
     environment {
-        DOCKER_HUB_TOKEN_CREDENTIALS = 'dockerhub_token_credentials'
-        IMAGE_NAME = 'abctechnologies'
-        WAR_FILE = '/var/jenkins-agent/workspace/DockerTomCatApp/target/ABCtechnologies-1.0.war'
+        DOCKER_IMAGE = 'abctechnologies'
+        DOCKERFILE_PATH = './Dockerfile'
     }
     stages {
+        stage('Checkout') {
+            steps {
+                checkout([$class: 'GitSCM', branches: [[name: 'tomcat']], userRemoteConfigs: [[url: 'https://github.com/IgorDems/ABC_Technologies.git']]])
+            }
+        }
         stage('Compile') {
             steps {
-                 sh 'mvn compile'
+                sh 'mvn compile'
             }
         }
         stage('Test') {
             steps {
-                 sh 'mvn test'
+                sh 'mvn test'
             }
         }
         stage('Build') {
             steps {
-                sh 'docker build --progress=plain -t ${IMAGE_NAME} .'
-            }
-        }
-        stage('Docker Login') {
-            steps {
-                withCredentials([string(credentialsId: DOCKER_HUB_TOKEN_CREDENTIALS, variable: 'DOCKER_TOKEN')]) {
-                    sh "docker login -u _ -p ${DOCKER_TOKEN} docker.io"
+                script {
+                    docker.build("${env.DOCKER_IMAGE}", "--file ${env.DOCKERFILE_PATH} --progress=plain .")
                 }
             }
         }
-        stage('Push to DockerHub') {
+        stage('Run Container') {
             steps {
-                sh "docker push ${IMAGE_NAME}"
+                script {
+                    docker.run("${env.DOCKER_IMAGE}")
+                }
             }
         }
-        stage('Docker Logout') {
-            steps {
-                sh "docker logout"
-            }
-        }
-        stage('Pull from DockerHub') {
-            steps {
-                sh "docker pull ${IMAGE_NAME}"
-            }
-        }
-        stage('Run Docker Container') {
-            steps {
-                sh "docker run -d -p 8080:8080 --name ${IMAGE_NAME} ${IMAGE_NAME}"
+    }
+    post {
+        always {
+            script {
+                docker.image("${env.DOCKER_IMAGE}").remove()
             }
         }
     }

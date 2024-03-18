@@ -2,52 +2,46 @@ pipeline {
     agent {
         label 'agent193'
     }
-    environment {
-        DOCKER_HUB_TOKEN_CREDENTIALS = 'dockerhub_token_credentials'
-        IMAGE_NAME = 'abctechnologies'
-        WAR_FILE = '/var/jenkins-agent/workspace/DockerTomCatApp/target/ABCtechnologies-1.0.war'
-    }
     stages {
         stage('Compile') {
             steps {
-                 sh 'mvn compile'
+                // Add compilation steps here
+                sh 'mvn compile'
             }
         }
         stage('Test') {
             steps {
-                 sh 'mvn test'
+                // Add test steps here
+                sh 'mvn test'
             }
         }
         stage('Build') {
             steps {
-                sh 'docker build --progress=plain -t ${IMAGE_NAME} .'
+                // Build the WAR file
+                sh 'mvn package'
             }
         }
-        stage('Docker Login') {
+        stage('Docker Build') {
             steps {
-                withCredentials([string(credentialsId: DOCKER_HUB_TOKEN_CREDENTIALS, variable: 'DOCKER_TOKEN')]) {
-                    sh "docker login -u _ -p ${DOCKER_TOKEN} docker.io"
-                }
+                // Docker build command with verbose output
+                sh 'docker build --progress=plain -t abctechnologies .'
             }
         }
         stage('Push to DockerHub') {
             steps {
-                sh "docker push ${IMAGE_NAME}"
+                // Docker push command to push image to DockerHub
+                withCredentials([usernamePassword(credentialsId: 'dockerhub_credentials', usernameVariable: 'DOCKER_USERNAME', passwordVariable: 'DOCKER_PASSWORD')]) {
+                    sh "docker login -u $DOCKER_USERNAME -p $DOCKER_PASSWORD"
+                    sh 'docker tag abctechnologies $DOCKER_USERNAME/abctechnologies'
+                    sh 'docker push $DOCKER_USERNAME/abctechnologies'
+                }
             }
         }
-        stage('Docker Logout') {
+        stage('Pull from DockerHub and Run') {
             steps {
-                sh "docker logout"
-            }
-        }
-        stage('Pull from DockerHub') {
-            steps {
-                sh "docker pull ${IMAGE_NAME}"
-            }
-        }
-        stage('Run Docker Container') {
-            steps {
-                sh "docker run -d -p 8080:8080 --name ${IMAGE_NAME} ${IMAGE_NAME}"
+                // Docker pull and run commands
+                sh 'docker pull $DOCKER_USERNAME/abctechnologies'
+                sh 'docker run -d --name abctechnologies-container -p 8080:8080 $DOCKER_USERNAME/abctechnologies'
             }
         }
     }

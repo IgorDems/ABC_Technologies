@@ -1,17 +1,6 @@
 pipeline {
-    agent {
-        label 'agent193'
-    }
-    environment {
-        DOCKER_IMAGE = 'abctechnologies'
-        DOCKERFILE_PATH = './Dockerfile'
-    }
+    agent { label 'agent193' }
     stages {
-        stage('Checkout') {
-            steps {
-                checkout([$class: 'GitSCM', branches: [[name: 'tomcat']], userRemoteConfigs: [[url: 'https://github.com/IgorDems/ABC_Technologies.git']]])
-            }
-        }
         stage('Compile') {
             steps {
                 sh 'mvn compile'
@@ -25,22 +14,9 @@ pipeline {
         stage('Build') {
             steps {
                 script {
-                    docker.build("${env.DOCKER_IMAGE}", "--file ${env.DOCKERFILE_PATH} --progress=plain .")
+                    // Add Docker build steps here
+                    docker.build('abctechnologies', '--progress=plain -t abctechnologies:latest .')
                 }
-            }
-        }
-        stage('Run Container') {
-            steps {
-                script {
-                    docker.run("${env.DOCKER_IMAGE}")
-                }
-            }
-        }
-    }
-    post {
-        always {
-            script {
-                docker.image("${env.DOCKER_IMAGE}").remove()
             }
         }
     }

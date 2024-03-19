@@ -8,6 +8,8 @@ ENV TOMCAT_VERSION 11.0.12
 ENV TOMCAT_MAJOR 11
 ENV TOMCAT_HOME /opt/tomcat
 
+
+RUN Java --version
 # Retry logic for downloading Tomcat
 RUN retries=5 && \
     for i in $(seq 1 $retries); do \

@@ -12,17 +12,17 @@ RUN apt-get update && \
 
 # Copy the WAR file into the webapps directory of Tomcat
 #COPY /var/jenkins-agent/workspace/TomCatImage/target/ABCtechnologies-1.0.war /opt/tomcat/webapps/
-# Copy the WAR file into the webapps directory of Tomcat
-COPY **/ABCtechnologies-1.0.war /usr/local/tomcat/webapps/
-
-# Copy startup script
-COPY startup.sh /usr/local/tomcat/bin/
-
-# Ensure startup script is executable
-RUN chmod +x /usr/local/tomcat/bin/startup.sh
+COPY **/ABCtechnologies-1.0.war /opt/tomcat/webapps/
 
 # Expose port 8080
 EXPOSE 8080
 
+# Copy startup script
+#COPY startup.sh /opt/tomcat/bin/
+
+# Ensure startup script is executable
+#RUN chmod +x /opt/tomcat/bin/startup.sh
+
 # Start Apache Tomcat
-CMD ["catalina.sh", "run"]
+CMD /usr/local/tomcat/bin/catalina.sh run
+

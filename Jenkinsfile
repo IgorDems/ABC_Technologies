@@ -25,8 +25,11 @@ pipeline {
                     if (existingContainerId != '') {
                         sh "docker stop $existingContainerId"
                         sh "docker rm $existingContainerId"
-						sh "docker rmi $(docker images --filter 'dangling=true' -q --no-trunc)"
+						
                     }
+					
+					sh "docker rmi $(docker images --filter 'dangling=true' -q --no-trunc)"
+					
                     // Build Docker image
                     def dockerImage = docker.build('abctechnologies', '-f Dockerfile .')
 

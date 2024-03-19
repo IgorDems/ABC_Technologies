@@ -5,7 +5,7 @@ FROM ubuntu:22.04
 RUN apt-get update && \
     apt-get install -y default-jdk && \
     apt-get install -y wget && \
-    wget https://downloads.apache.org/tomcat/tomcat-9/v9.0.59/bin/apache-tomcat-9.0.59.tar.gz && \
+    cget https://downloads.apache.org/tomcat/tomcat-9/v9.0.59/bin/apache-tomcat-9.0.59.tar.gz && \
     tar -xvf apache-tomcat-9.0.59.tar.gz && \
     mv apache-tomcat-9.0.59 /usr/local/tomcat && \
     rm -rf apache-tomcat-9.0.59.tar.gz && \

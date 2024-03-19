@@ -9,13 +9,12 @@ ENV TOMCAT_MAJOR 11
 ENV TOMCAT_HOME /opt/tomcat
 
 
-RUN whoami
 # Retry logic for downloading Tomcat
 RUN retries=5 && \
     for i in $(seq 1 $retries); do \
         wget -q "https://downloads.apache.org/tomcat/tomcat-${TOMCAT_MAJOR}/v${TOMCAT_VERSION}/bin/apache-tomcat-${TOMCAT_VERSION}.tar.gz" -O /tmp/tomcat.tar.gz && break || \
         wget -q "https://mirrors.estointernet.in/apache/tomcat/tomcat-${TOMCAT_MAJOR}/v${TOMCAT_VERSION}/bin/apache-tomcat-${TOMCAT_VERSION}.tar.gz" -O /tmp/tomcat.tar.gz && break || \
-        sleep 5; \
+        sleep 20; \
     done
 
 # Check if the download was successful

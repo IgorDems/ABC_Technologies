@@ -1,7 +1,7 @@
 FROM ubuntu:22.04
 
 # Install necessary dependencies
-RUN apt-get update && apt-get install -y wget tar openjdk-8-jdk
+RUN apt-get update && apt-get install -y wget tar openjdk-17-jdk
 
 # Define environment variables
 ENV TOMCAT_VERSION 9.0.87

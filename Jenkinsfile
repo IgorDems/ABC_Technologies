@@ -17,6 +17,8 @@ pipeline {
         stage('Build') {
             steps {
                 script {
+					def containerId = dockerContainer.id
+					sh "docker kill $containerId"
                     // Build Docker image
                     def dockerImage = docker.build('abctechnologies', '-f Dockerfile .')
 

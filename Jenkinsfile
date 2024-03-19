@@ -1,9 +1,15 @@
 pipeline {
     agent { label 'agent193' }
+    environment {
+        DOCKER_IMAGE = 'abctechnologies'
+        DOCKERFILE_PATH = './Dockerfile'
+        CONTAINER_NAME = 'my-tomcat-container'
+        DOCKER_HUB_CREDENTIALS = 'dockerhub_credentials'
+    }
     stages {
         stage('Compile') {
             steps {
-                 sh 'mvn compile'
+                sh 'mvn compile'
             }
         }
         stage('Test') {
@@ -11,20 +17,41 @@ pipeline {
                 sh 'mvn test'
             }
         }
-        stage('Build') {
+        stage('Build Docker Image') {
             steps {
-                // Build Docker image
                 script {
-                    docker.build('abctechnologies', '--progress=plain -t abctechnologies:latest .')
+                    docker.build(DOCKER_IMAGE, 
+                        dockerfile: DOCKERFILE_PATH, 
+                        buildArgs: [
+                            WGET: 'installed',
+                            JDK_VERSION: '17',
+                            TOMCAT_VERSION: '9.0.87'
+                        ],
+                        additionalBuildArgs: '--progress=plain'
+                    )
                 }
             }
         }
-        stage('Run Container') {
+        stage('Start Docker Container') {
             steps {
-                // Start Docker container
                 script {
-                    docker.image('abctechnologies').run('-p 8080:8080')
+                    docker.image(DOCKER_IMAGE).run('-p 8080:8080 --name ${CONTAINER_NAME}')
                 }
+            }
+        }
+    }
+    post {
+        success {
+            script {
+                def containerIP = sh(script: "docker inspect -f '{{.NetworkSettings.IPAddress}}' ${CONTAINER_NAME}", returnStdout: true).trim()
+                echo "Container IP: $containerIP"
+                echo "Tomcat URL: http://$containerIP:8080"
+            }
+        }
+        cleanup {
+            script {
+                docker.image(DOCKER_IMAGE).stop()
+                docker.image(DOCKER_IMAGE).remove(force: true)
             }
         }
     }

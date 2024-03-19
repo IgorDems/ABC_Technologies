@@ -1,14 +1,33 @@
-# Use Ubuntu 22.04 as base image
-FROM ubuntu:22.04
+# # Use Ubuntu 22.04 as base image
+# FROM ubuntu:22.04
 
-# Install wget, openjdk-17-jdk, and apache-tomcat-9.0.87
-RUN apt-get update && \
-    apt-get install -y wget && \
-    apt-get install -y openjdk-17-jdk && \
-    wget https://downloads.apache.org/tomcat/tomcat-9/v9.0.87/bin/apache-tomcat-9.0.87.tar.gz && \
-    tar -xzvf apache-tomcat-9.0.87.tar.gz && \
-    mv apache-tomcat-9.0.87 /opt/tomcat && \
-    rm -rf apache-tomcat-9.0.87.tar.gz
+# # Install wget, openjdk-17-jdk, and apache-tomcat-9.0.87
+# RUN apt-get update && \
+#     apt-get install -y wget && \
+#     apt-get install -y openjdk-17-jdk && \
+#     wget https://downloads.apache.org/tomcat/tomcat-9/v9.0.87/bin/apache-tomcat-9.0.87.tar.gz && \
+#     tar -xzvf apache-tomcat-9.0.87.tar.gz && \
+#     mv apache-tomcat-9.0.87 /opt/tomcat && \
+#     rm -rf apache-tomcat-9.0.87.tar.gz
+
+# # Copy the WAR file into the webapps directory of Tomcat
+# COPY **/ABCtechnologies-1.0.war /usr/local/tomcat/webapps/
+
+# # Copy startup script
+# COPY startup.sh /usr/local/tomcat/bin/
+
+# # Ensure startup script is executable
+# RUN chmod +x /usr/local/tomcat/bin/startup.sh
+
+# # Expose port 8080
+# EXPOSE 8080
+
+# # Start Apache Tomcat
+# CMD ["catalina.sh", "run"]
+
+# ==============================================================
+# Use a minimal base image for Tomcat
+FROM tomcat:9.0.87-jdk17-openjdk-slim
 
 # Copy the WAR file into the webapps directory of Tomcat
 COPY **/ABCtechnologies-1.0.war /usr/local/tomcat/webapps/
@@ -24,4 +43,3 @@ EXPOSE 8080
 
 # Start Apache Tomcat
 CMD ["catalina.sh", "run"]
-

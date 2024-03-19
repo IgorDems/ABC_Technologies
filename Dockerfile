@@ -9,9 +9,12 @@ RUN apt-get update && \
     tar -xzvf apache-tomcat-9.0.87.tar.gz && \
     mv apache-tomcat-9.0.87 /opt/tomcat && \
     rm -rf apache-tomcat-9.0.87.tar.gz
-ADD **/*.war /usr/local/tomcat/webapps
+
 # Expose port 8080
 EXPOSE 8080
+
+# Copy ABCtechnologies-1.0.war from Jenkins agent workspace to Tomcat webapps directory
+COPY ABCtechnologies-1.0.war /opt/tomcat/webapps/
 
 # Start Apache Tomcat
 CMD ["/opt/tomcat/bin/catalina.sh", "run"]

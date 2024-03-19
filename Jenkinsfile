@@ -19,5 +19,13 @@ pipeline {
                 }
             }
         }
+		        stage('Run Container') {
+            steps {
+                // Start Docker container
+                script {
+                    docker.image('abctechnologies').run('-p 8080:8080')
+                }
+            }
+        }
     }
 }

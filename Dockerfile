@@ -9,7 +9,10 @@ RUN apt-get update && \
     tar -xzvf apache-tomcat-9.0.87.tar.gz && \
     mv apache-tomcat-9.0.87 /opt/tomcat && \
     rm -rf apache-tomcat-9.0.87.tar.gz
-ADD **/*.war /opt/tomcat/webapps/
+	
+# Copy the WAR file into the webapps directory of Tomcat
+COPY ABCtechnologies-1.0.war /opt/tomcat/webapps/
+
 # Expose port 8080
 EXPOSE 8080
 

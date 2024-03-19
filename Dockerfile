@@ -4,8 +4,8 @@ FROM ubuntu:22.04
 RUN apt-get update && apt-get install -y wget tar
 
 # Define environment variables
-ENV TOMCAT_VERSION 11.0.12
-ENV TOMCAT_MAJOR 11
+ENV TOMCAT_VERSION 9.0.87
+ENV TOMCAT_MAJOR 9
 ENV TOMCAT_HOME /opt/tomcat
 
 
@@ -14,7 +14,7 @@ RUN retries=5 && \
     for i in $(seq 1 $retries); do \
         wget -q "https://downloads.apache.org/tomcat/tomcat-${TOMCAT_MAJOR}/v${TOMCAT_VERSION}/bin/apache-tomcat-${TOMCAT_VERSION}.tar.gz" -O /tmp/tomcat.tar.gz && break || \
         wget -q "https://mirrors.estointernet.in/apache/tomcat/tomcat-${TOMCAT_MAJOR}/v${TOMCAT_VERSION}/bin/apache-tomcat-${TOMCAT_VERSION}.tar.gz" -O /tmp/tomcat.tar.gz && break || \
-        sleep 20; \
+        sleep 5; \
     done
 
 # Check if the download was successful

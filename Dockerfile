@@ -11,7 +11,7 @@ RUN apt-get update && \
     rm -rf apache-tomcat-9.0.87.tar.gz
 	
 # Copy the WAR file into the webapps directory of Tomcat
-COPY ABCtechnologies-1.0.war /opt/tomcat/webapps/
+COPY /var/jenkins-agent/workspace/TomCatImage/target/ABCtechnologies-1.0.war /opt/tomcat/webapps/
 
 # Expose port 8080
 EXPOSE 8080

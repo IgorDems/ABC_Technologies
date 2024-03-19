@@ -29,6 +29,21 @@ pipeline {
                 }
             }
         }
+        stage('Compile') {
+            steps {
+                // Add compilation steps here
+            }
+        }
+        stage('Test') {
+            steps {
+                // Add testing steps here
+            }
+        }
+        stage('Build') {
+            steps {
+                // Add build steps here
+            }
+        }
     }
     post {
         success {
@@ -38,6 +53,11 @@ pipeline {
                 echo "Tomcat URL: http://$containerIP:8080"
             }
         }
-        
+        cleanup {
+            script {
+                docker.image(DOCKER_IMAGE).stop()
+                docker.image(DOCKER_IMAGE).remove(force: true)
+            }
+        }
     }
 }

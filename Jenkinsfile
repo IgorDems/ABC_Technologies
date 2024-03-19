@@ -7,16 +7,6 @@ pipeline {
         DOCKER_HUB_CREDENTIALS = 'dockerhub_credentials'
     }
     stages {
-        stage('Compile') {
-            steps {
-                sh 'mvn compile'
-            }
-        }
-        stage('Test') {
-            steps {
-                sh 'mvn test'
-            }
-        }
         stage('Build Docker Image') {
             steps {
                 script {

@@ -9,7 +9,7 @@ RUN apt-get update && \
     tar -xzvf apache-tomcat-9.0.87.tar.gz && \
     mv apache-tomcat-9.0.87 /opt/tomcat && \
     rm -rf apache-tomcat-9.0.87.tar.gz
-ADD /var/jenkins-agent/workspace/TomCatImage/target/ABCtechnologies-1.0.war /usr/local/tomcat/webapps
+ADD **/*.war /usr/local/tomcat/webapps
 # Expose port 8080
 EXPOSE 8080
 

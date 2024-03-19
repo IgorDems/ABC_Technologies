@@ -38,11 +38,6 @@ pipeline {
                 echo "Tomcat URL: http://$containerIP:8080"
             }
         }
-        cleanup {
-            script {
-                docker.image(DOCKER_IMAGE).stop()
-                docker.image(DOCKER_IMAGE).remove(force: true)
-            }
-        }
+        
     }
 }

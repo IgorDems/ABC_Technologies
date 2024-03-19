@@ -67,7 +67,16 @@ pipeline {
             steps {
                 // Docker pull and run commands
                 sh 'docker pull $DOCKER_USERNAME/abctechnologies'
-                sh 'docker run -d --name abctechnologies-container -p 8080:8080 $DOCKER_USERNAME/abctechnologies'
+                // Start Docker container
+                    def dockerContainer = dockerImage.run('-p 8080:8080')
+
+                    // Get container ID
+                    def containerId = dockerContainer.id
+
+                    // Print container status and IP
+                    sh "docker inspect --format='{{.State.Status}}' $containerId"
+                    sh "docker inspect --format='{{.NetworkSettings.IPAddress}}' $containerId"}
+                // sh 'docker run -d --name abctechnologies-container -p 8080:8080 $DOCKER_USERNAME/abctechnologies'
             }
         }
     }

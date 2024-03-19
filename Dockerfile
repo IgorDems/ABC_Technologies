@@ -1,23 +1,21 @@
-# Use Ubuntu 22.04 as the base image
+# Use Ubuntu 22.04 as base image
 FROM ubuntu:22.04
 
-# Install OpenJDK 21
-RUN apt-get update && apt-get install -y openjdk-17-jdk
+# Install wget, openjdk-17-jdk, and apache-tomcat-9.0.87
+RUN apt-get update && \
+    apt-get install -y wget && \
+    apt-get install -y openjdk-17-jdk && \
+    wget https://downloads.apache.org/tomcat/tomcat-9/v9.0.87/bin/apache-tomcat-9.0.87.tar.gz && \
+    tar -xzvf apache-tomcat-9.0.87.tar.gz && \
+    mv apache-tomcat-9.0.87 /opt/tomcat && \
+    rm -rf apache-tomcat-9.0.87.tar.gz
 
-# Install Apache Tomcat 11
-# You can adjust the version as needed
-ENV TOMCAT_VERSION 11.0.13
-RUN apt-get install -y wget && \
-    wget -q https://archive.apache.org/dist/tomcat/tomcat-11/v${TOMCAT_VERSION}/bin/apache-tomcat-${TOMCAT_VERSION}.tar.gz && \
-    tar -xf apache-tomcat-${TOMCAT_VERSION}.tar.gz -C /opt && \
-    mv /opt/apache-tomcat-${TOMCAT_VERSION} /opt/tomcat && \
-    rm apache-tomcat-${TOMCAT_VERSION}.tar.gz
-
-# Deploy WAR file to Tomcat
+# Copy the WAR file into the webapps directory of Tomcat
+#COPY /var/jenkins-agent/workspace/TomCatImage/target/ABCtechnologies-1.0.war /opt/tomcat/webapps/
 COPY **/ABCtechnologies-1.0.war /opt/tomcat/webapps/
 
-# Expose Tomcat port
+# Expose port 8080
 EXPOSE 8080
 
-# Start Tomcat
+# Start Apache Tomcat
 CMD ["/opt/tomcat/bin/catalina.sh", "run"]

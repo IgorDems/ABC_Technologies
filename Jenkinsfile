@@ -17,8 +17,15 @@ pipeline {
         stage('Build') {
             steps {
                 script {
-					def containerId = dockerContainer.id
-					sh "docker kill $containerId"
+				
+					// Check if container based on 'abctechnologies' image exists
+                    def existingContainerId = sh(script: "docker ps -q --filter ancestor=abctechnologies", returnStdout: true).trim()
+
+                    // If container exists, stop and remove it
+                    if (existingContainerId != '') {
+                        sh "docker stop $existingContainerId"
+                        sh "docker rm $existingContainerId"
+                    }
                     // Build Docker image
                     def dockerImage = docker.build('abctechnologies', '-f Dockerfile .')
 

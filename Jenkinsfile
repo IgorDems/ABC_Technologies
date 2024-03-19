@@ -31,17 +31,17 @@ pipeline {
         }
         stage('Compile') {
             steps {
-                // Add compilation steps here
+                 sh 'mvn compile'
             }
         }
         stage('Test') {
             steps {
-                // Add testing steps here
+                sh 'mvn test'
             }
         }
         stage('Build') {
             steps {
-                // Add build steps here
+                sh 'mvn build'
             }
         }
     }

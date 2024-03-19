@@ -14,7 +14,7 @@ RUN apt-get install -y wget && \
     rm apache-tomcat-${TOMCAT_VERSION}.tar.gz
 
 # Deploy WAR file to Tomcat
-COPY ./target/ABCtechnologies-1.0.war /opt/tomcat/webapps/
+COPY **/ABCtechnologies-1.0.war /opt/tomcat/webapps/
 
 # Expose Tomcat port
 EXPOSE 8080

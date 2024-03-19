@@ -28,8 +28,10 @@ pipeline {
 						
                     }
 					
-					sh "docker rmi $(docker images --filter 'dangling=true' -q --no-trunc)"
-					
+                    // Delete all unused Docker images
+                    sh 'docker image prune -a --force'
+                
+
                     // Build Docker image
                     def dockerImage = docker.build('abctechnologies', '-f Dockerfile .')
 

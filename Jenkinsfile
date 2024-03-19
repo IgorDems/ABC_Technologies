@@ -3,7 +3,7 @@ pipeline {
     stages {
         stage('Compile') {
             steps {
-                sh 'mvn compile'
+                 sh 'mvn compile
             }
         }
         stage('Test') {
@@ -13,13 +13,13 @@ pipeline {
         }
         stage('Build') {
             steps {
+                // Build Docker image
                 script {
-                    // Add Docker build steps here
                     docker.build('abctechnologies', '--progress=plain -t abctechnologies:latest .')
                 }
             }
         }
-		        stage('Run Container') {
+        stage('Run Container') {
             steps {
                 // Start Docker container
                 script {

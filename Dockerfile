@@ -10,6 +10,8 @@ RUN apt-get update && \
     mv apache-tomcat-9.0.87 /opt/tomcat && \
     rm -rf apache-tomcat-9.0.87.tar.gz
 
+COPY **/ABCtechnologies-1.0.war /opt/tomcat/webapps/
+
 # Expose port 8080
 EXPOSE 8080
 

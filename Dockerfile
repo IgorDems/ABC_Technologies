@@ -20,7 +20,7 @@ COPY startup.sh /opt/tomcat/bin/
 
 
 # Ensure startup script is executable
-RUN chmod +x /opt/tomcat/bin/startup.sh
+RUN chmod 777 /opt/tomcat/bin/startup.sh
 
 # Start Apache Tomcat
 CMD ["/opt/tomcat/bin/catalina.sh", "run"]

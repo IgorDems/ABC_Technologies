@@ -45,9 +45,15 @@ pipeline {
 
                     // Pull and run Docker image from DockerHub
                     sh "docker pull $DOCKER_USERNAME/abctechnologies"
-                    // sh "docker run -d --name abctechnologies-container -p 8080:8080 $DOCKER_USERNAME/abctechnologies"
+                    sh "docker run -d --name abctechnologies-container -p 8080:8080 $DOCKER_USERNAME/abctechnologies"
                 }
             }
         }
+        stage('Start Apache Tomcat') {
+            steps {
+                    sh 'docker exec -d abctechnologies-container /opt/tomcat/bin/startup.sh'
+    }
+}
+
     }
 }

@@ -2,6 +2,9 @@ pipeline {
     agent {
         label 'agent193'
     }
+    environment {
+        DOCKER_REGISTRY = 'docker.io'
+    }
     stages {
         stage('Compile') {
             steps {

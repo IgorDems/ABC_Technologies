@@ -35,6 +35,10 @@ pipeline {
         stage('Docker Build') {
             steps {
                 script {
+                    // Stop and remove any existing Docker container based on 'abctechnologies' image
+                    // sh "docker stop abctechnologies-container || true"
+                    // sh "docker rm abctechnologies-container || true"
+
                     // Delete all unused Docker images
                     sh 'docker image prune -a --force'
 
@@ -50,14 +54,11 @@ pipeline {
 
                     // Push Docker image to DockerHub
                     sh "docker push $DOCKER_USERNAME/abctechnologies"
-            }
-
-                    // Stop and remove any existing Docker container based on 'abctechnologies' image
-                    sh "docker stop abctechnologies-container || true"
-                    sh "docker rm abctechnologies-container || true"
 
                     // Pull Docker image from DockerHub
                     sh "docker pull $DOCKER_USERNAME/abctechnologies"
+            }       
+
 
                     // Start Docker container
                     def dockerContainer = dockerImage.run('-d --name abctechnologies-container -p 8080:8080')

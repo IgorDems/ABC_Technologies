@@ -10,18 +10,8 @@ RUN apt-get update && \
     mv apache-tomcat-9.0.87 /opt/tomcat && \
     rm -rf apache-tomcat-9.0.87.tar.gz
 
-# Copy the WAR file into the webapps directory of Tomcat
-COPY **/ABCtechnologies-1.0.war /opt/tomcat/webapps/
-
 # Expose port 8080
 EXPOSE 8080
-# Copy startup script
-# COPY startup.sh /opt/tomcat/bin/
-
-
-# # Ensure startup script is executable
-# RUN chmod 777 /opt/tomcat/bin/startup.sh
 
 # Start Apache Tomcat
 CMD ["/opt/tomcat/bin/catalina.sh", "run"]
-

@@ -16,11 +16,11 @@ COPY **/ABCtechnologies-1.0.war /opt/tomcat/webapps/
 # Expose port 8080
 EXPOSE 8080
 # Copy startup script
-COPY startup.sh /opt/tomcat/bin/
+# COPY startup.sh /opt/tomcat/bin/
 
 
-# Ensure startup script is executable
-RUN chmod 777 /opt/tomcat/bin/startup.sh
+# # Ensure startup script is executable
+# RUN chmod 777 /opt/tomcat/bin/startup.sh
 
 # Start Apache Tomcat
 CMD ["/opt/tomcat/bin/catalina.sh", "run"]

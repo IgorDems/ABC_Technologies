@@ -71,12 +71,7 @@ pipeline {
                 }
             }
         }
-//         stage('Start Apache Tomcat') {
-//             steps {
-//                     sh 'sudo bash /opt/tomcat/bin/startup.sh'
-//                     sh 'docker exec -d abctechnologies-container /opt/tomcat/bin/startup.sh'
-//     }
-// }
+
 
     }
 }

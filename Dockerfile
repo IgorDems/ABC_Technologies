@@ -22,5 +22,5 @@ COPY ./startup.sh /opt/tomcat/bin/
 RUN chmod +x /opt/tomcat/bin/startup.sh
 
 # Start Apache Tomcat
-CMD ["catalina.sh", "run"]
+CMD ["/opt/tomcat/bin/catalina.sh", "run"]
 

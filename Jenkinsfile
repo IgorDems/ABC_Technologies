@@ -18,6 +18,17 @@ pipeline {
                 sh 'mvn package'
             }
         }
+        stage('Stop and Remove Docker Containers') {
+            steps {
+                script {
+                    // Stop all running Docker containers
+                    sh 'docker stop $(docker ps -q) || true'
+                    
+                    // Remove all stopped Docker containers
+                    sh 'docker rm $(docker ps -aq) || true'
+                }
+            }
+        }
         stage('Docker Build') {
             steps {
                 script {

@@ -16,7 +16,8 @@ COPY **/ABCtechnologies-1.0.war /opt/tomcat/webapps/
 # Expose port 8080
 EXPOSE 8080
 # Copy startup script
-COPY startup.sh /opt/tomcat/bin/startup.sh
+COPY startup.sh /opt/tomcat/bin/
+
 
 # Ensure startup script is executable
 RUN chmod +x /opt/tomcat/bin/startup.sh

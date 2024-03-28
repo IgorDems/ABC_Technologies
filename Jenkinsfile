@@ -54,12 +54,14 @@ pipeline {
 
                     // Push Docker image to DockerHub
                     sh "docker push $DOCKER_USERNAME/abctechnologies"
-
+                    // Echo success message for Docker image build and upload
+                    echo "Successfully built and uploaded to DockerHub"
                     // Pull Docker image from DockerHub
                     sh "docker pull $DOCKER_USERNAME/abctechnologies"
             }       
 
-
+                    // Echo success message for Docker image pull
+                    echo "Successfully pulled Docker image from DockerHub"
                     // Start Docker container
                     def dockerContainer = dockerImage.run('-d --name abctechnologies-container -p 8080:8080')
 

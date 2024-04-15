@@ -1,5 +1,5 @@
 pipeline {
-    agent { label 'agent191' }
+    agent { label 'agent193' }
 
     stages {
         stage('Compile') {

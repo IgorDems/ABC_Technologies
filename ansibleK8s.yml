@@ -6,13 +6,14 @@
       community.docker.docker_image:
         build:
           path: "/var/jenkins-agent/workspace/ABC_AnsibleK8s"
-          name: docker.io/demsdocker/abctechnologies
-          #tag: test
+          name: docker.io/demsdocker/abctechnologies # Specify the name here
           push: true
           source: build
-        # register: out
+        register: out
     - debug:
         var: out
+
+    # Add your other tasks here
 
     # - name: start a container
     #   community.docker.docker_container:

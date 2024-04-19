@@ -26,7 +26,7 @@ pipeline {
         stage('Build Docker Image') {
             steps {
                 script {
-                    sh 'ansible-playbook ansibleK8.yml'
+                    sh 'ansible-playbook /var/jenkins-agent/workspace/ABC_AnsibleK8s/ansibleK8.yml'
                 }
             }
         }

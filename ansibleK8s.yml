@@ -1,5 +1,5 @@
 ---
-- hosts: localhost
+- hosts: 10.0.0.193
   become: yes
   tasks:
     - name: Build an image and push it to a private repo

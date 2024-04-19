@@ -8,25 +8,10 @@ pipeline {
     }
     
     stages {
-        stage('Compile') {
-            steps {
-                sh 'mvn compile'
-            }
-        }
-        stage('Test') {
-            steps {
-                sh 'mvn test'
-            }
-        }
-        stage('Build') {
-            steps {
-                sh 'mvn package'
-            }
-        }
         stage('Build Docker Image') {
             steps {
                 script {
-                    sh 'ansible-playbook ansibleK8s.yml'
+                    sh 'ansible-playbook --vvv ansibleK8s.yml'
                 }
             }
         }

@@ -1,0 +1,11 @@
+---
+- name: Deploy Artifacts on Kubernetes
+  hosts: localhost
+  tasks:
+    - name: Copy artifacts to Kubernetes node
+      copy:
+        src: /var/jenkins-agent/workspace/ABC_AnsibleK8s/
+        dest: /tmp/ABC_AnsibleK8s
+
+    - name: Apply Kubernetes manifests
+      shell: kubectl apply -f /tmp/ABC_AnsibleK8s/

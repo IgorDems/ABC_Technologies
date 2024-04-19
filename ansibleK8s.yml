@@ -10,23 +10,23 @@
           #tag: test
           push: true
           source: build
-        # register: out
+        register: out
     - debug:
         var: out
 
-    - name: start a container
-      community.docker.docker_container:
-        name: abc-application
-        image: demsdocker/abctechnologies
-        state: started
-        ports:
-          - "1234:8080"
-      register: out
-    - debug:
-        var: out
+    # - name: start a container
+    #   community.docker.docker_container:
+    #     name: abc-application
+    #     image: demsdocker/abctechnologies
+    #     state: started
+    #     ports:
+    #       - "1234:8080"
+    #   register: out
+    # - debug:
+    #     var: out
 
-    - name: Create a Deployment by reading the definition from a local file
-      command: "kubectl --kubeconfig=/etc/kubernetes/admin.conf apply -f /var/jenkins-agent/workspace/ABC_AnsibleK8s/deployment.yml"
-      register: out
-    - debug:
-        var: out
+    # - name: Create a Deployment by reading the definition from a local file
+    #   command: "kubectl --kubeconfig=/etc/kubernetes/admin.conf apply -f /var/jenkins-agent/workspace/ABC_AnsibleK8s/deployment.yml"
+    #   register: out
+    # - debug:
+    #     var: out

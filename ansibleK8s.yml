@@ -2,7 +2,7 @@
 - hosts: localhost
   become: yes
   tasks:
-    - name: Build an image and push it to a private repo
+    - name: Build an image #and push it to a private repo
       community.docker.docker_image:
         build:
           path: "/var/jenkins-agent/workspace/ABC_AnsibleK8s"
@@ -10,7 +10,7 @@
           #tag: test
           push: true
           source: build
-        register: out
+        # register: out
     - debug:
         var: out
 

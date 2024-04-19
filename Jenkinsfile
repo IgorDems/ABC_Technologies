@@ -11,7 +11,7 @@ pipeline {
         stage('Build Docker Image') {
             steps {
                 script {
-                    sh 'ansible-playbook --vvv ansibleK8s.yml'
+                    sh 'ansible-playbook -vvv ansibleK8s.yml'
                 }
             }
         }

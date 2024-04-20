@@ -14,7 +14,7 @@ pipeline {
                     // sh 'exit'
                     // sh 'ssh-add /home/igor/.ssh/id_193rsa'
                     // sh 'ssh  igor@10.0.0.193'
-                    sh 'ansible-playbook -vvv docker_image.yml'
+                    sh 'ansible-playbook -vvv docker_image.yml --connection=local'
                 }
             }
         }
@@ -41,7 +41,7 @@ pipeline {
             steps {
                 script {
                     // Integrate Kubernetes with Ansible here
-                    sh 'ansible-playbook kubernetes.yml'
+                    sh 'ansible-playbook kubernetes.yml --connection=local'
                 }
             }
         }
@@ -49,7 +49,7 @@ pipeline {
             steps {
                 script {
                     // Create deployment and service using Ansible playbook
-                    sh 'ansible-playbook create_deployment_service.yml'
+                    sh 'ansible-playbook create_deployment_service.yml --connection=local'
                 }
             }
         }

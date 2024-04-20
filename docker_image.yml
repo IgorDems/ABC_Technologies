@@ -1,8 +1,8 @@
 ---
 - name: Build Docker Image
-  hosts: 10.0.0.193
+  hosts: localhost
   tasks:
     - name: Build Docker image
       docker_image:
         name: abctechnologies
-        path: /home/igor/project_required_file_v2
+        path: /var/jenkins-agent/workspace/ABC_AnsibleK8s

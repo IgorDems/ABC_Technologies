@@ -5,4 +5,4 @@
     - name: Build Docker image
       docker_image:
         name: abctechnologies
-        path: /var/jenkins-agent/workspace/ABC_AnsibleK8s
+        path: /home/igor/project_required_file_v2

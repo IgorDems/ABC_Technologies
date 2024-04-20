@@ -19,8 +19,8 @@ pipeline {
                         }
                     }
                 }
-            }
-        }
+            
+        
         stage('Push Docker Image') {
             steps {
                 script {
@@ -71,27 +71,3 @@ pipeline {
     }
 }
 
-
-
-pipeline {
-    agent any
-
-    environment {
-        DOCKER_REGISTRY = 'docker.io'
-    }
-
-    stages {
-        stage('Build and Push Docker Image') {
-            steps {
-                script {
-                    withCredentials([string(credentialsId: 'dockerhub_token_credentials', variable: 'DOCKERHUB_TOKEN')]) {
-                        docker.withRegistry("${DOCKER_REGISTRY}", "dockerhub_token_credentials") {
-                            def customImage = docker.build("mydockerimage")
-                            customImage.push()
-                        }
-                    }
-                }
-            }
-        }
-    }
-}

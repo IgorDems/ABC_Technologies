@@ -14,13 +14,9 @@ pipeline {
             steps {
                 script {
                     sh 'ansible-playbook -vvv docker_image.yml --connection=local'
-                    // withCredentials([string(credentialsId: 'dockerhub_token_credentials', variable: 'DOCKERHUB_TOKEN')]) {
-                    //     docker.withRegistry("${DOCKER_REGISTRY}", "dockerhub_token_credentials") {
-                    //         def customImage = docker.build("abctechnologies")
-                    //         customImage.push()
-                        }
                     }
                 }
+            }
             
         
         stage('Push Docker Image') {

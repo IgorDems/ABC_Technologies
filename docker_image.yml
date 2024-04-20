@@ -1,8 +1,14 @@
 ---
-- name: Build Docker Image
+- name: Build and Push Docker Image
   hosts: localhost
   tasks:
     - name: Build Docker image
       docker_image:
         name: abctechnologies
         path: /var/jenkins-agent/workspace/ABC_AnsibleK8s
+        push: true
+      register: docker_image_result
+
+    - name: Debug Docker image build result
+      debug:
+        var: docker_image_result

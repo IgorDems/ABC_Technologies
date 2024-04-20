@@ -11,8 +11,8 @@ pipeline {
         stage('Build Docker Image') {
             steps {
                 script {
-                    sh 'exit'
-                    sh 'ssh-add /home/igor/.ssh/id_193rsa'
+                    // sh 'exit'
+                    // sh 'ssh-add /home/igor/.ssh/id_193rsa'
                     sh 'ansible-playbook -vvv docker_image.yml'
                 }
             }

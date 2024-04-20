@@ -13,6 +13,7 @@ pipeline {
                 script {
                     // sh 'exit'
                     // sh 'ssh-add /home/igor/.ssh/id_193rsa'
+                    sh 'ssh  igor@10.0.0.193'
                     sh 'ansible-playbook -vvv docker_image.yml'
                 }
             }

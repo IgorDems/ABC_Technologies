@@ -10,9 +10,9 @@
           #tag: test
           push: true
           source: build
-        # register: out
-    # - debug:
-    #     var: out
+        register: out
+    - debug:
+        var: out
 
     # - name: start a container
     #   community.docker.docker_container:

@@ -25,9 +25,9 @@ pipeline {
             steps {
                 script {
                     withCredentials([[$class: 'UsernamePasswordMultiBinding', credentialsId: "${DOCKERHUB_CREDENTIALS}", usernameVariable: 'DOCKER_USERNAME', passwordVariable: 'DOCKER_PASSWORD']]) {
-                        sh 'docker login -u $DOCKER_USERNAME -p $DOCKER_PASSWORD'
-                        sh 'docker tag abctechnologies docker.io/demsdocker/abctechnologies'
-                        sh 'docker push docker.io/demsdocker/abctechnologies'
+                        sh 'docker -vvv login -u $DOCKER_USERNAME -p $DOCKER_PASSWORD'
+                        sh 'docker -vvv tag abctechnologies docker.io/demsdocker/abctechnologies'
+                        sh 'docker -vvv push docker.io/demsdocker/abctechnologies'
                     }
                 }
             }

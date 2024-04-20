@@ -1,0 +1,21 @@
+---
+- name: Build Docker Image
+  hosts: localhost
+  tasks:
+    - name: Create Dockerfile
+      copy:
+        content: |
+          FROM ubuntu:latest
+          RUN apt-get update && apt-get install -y \
+              python3 \
+              python3-pip \
+              && rm -rf /var/lib/apt/lists/*
+          WORKDIR /app
+          COPY . .
+          RUN pip3 install -r requirements.txt
+      dest: /var/jenkins-agent/workspace/ABC_AnsibleK8s/Dockerfile
+
+    - name: Build Docker Image
+      docker_image:
+        name: abctechnologies
+        path: /var/jenkins-agent/workspace/ABC_AnsibleK8s/

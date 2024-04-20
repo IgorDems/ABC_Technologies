@@ -5,6 +5,7 @@
     - name: Build Docker image
       docker_image:
         name: abctechnologies
+        source: build # Explicitly set the source option to "build"
         path: /var/jenkins-agent/workspace/ABC_AnsibleK8s
         push: true
       register: docker_image_result

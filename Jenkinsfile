@@ -4,7 +4,9 @@ pipeline {
     }
     
     environment {
-        DOCKERHUB_CREDENTIALS = credentials('dockerhub_token_credentials')
+        DOCKERHUB_CREDENTIALS = credentials('dockerhub_credentials')
+        // DOCKERHUB_CREDENTIALS = credentials('dockerhub_token_credentials')
+        
     }
     
     stages {
@@ -21,29 +23,29 @@ pipeline {
                 }
             
         
-        // stage('Push Docker Image') {
-        //     steps {
-        //         script {
-        //             withCredentials([[$class: 'UsernamePasswordMultiBinding', credentialsId: "${DOCKERHUB_CREDENTIALS}", usernameVariable: 'DOCKER_USERNAME', passwordVariable: 'DOCKER_PASSWORD']]) {
-        //                 sh 'docker -vvv login -u $DOCKER_USERNAME -p $DOCKER_PASSWORD'
-        //                 sh 'docker -vvv tag abctechnologies docker.io/demsdocker/abctechnologies'
-        //                 sh 'docker -vvv push docker.io/demsdocker/abctechnologies'
-        //             }
-        //         }
-        //     }
-        // }
         stage('Push Docker Image') {
             steps {
                 script {
-                    withCredentials([string(credentialsId: 'dockerhub_token_credentials', variable: 'DOCKERHUB_TOKEN')]) {
-                        docker.withRegistry("${DOCKER_REGISTRY}", "dockerhub_token_credentials") {
-                            def customImage = docker.build("abctechnologies")
-                            customImage.push()
-                        }
+                    withCredentials([[$class: 'UsernamePasswordMultiBinding', credentialsId: "${DOCKERHUB_CREDENTIALS}", usernameVariable: 'DOCKER_USERNAME', passwordVariable: 'DOCKER_PASSWORD']]) {
+                        sh 'docker -vvv login -u $DOCKER_USERNAME -p $DOCKER_PASSWORD'
+                        sh 'docker -vvv tag abctechnologies docker.io/demsdocker/abctechnologies'
+                        sh 'docker -vvv push docker.io/demsdocker/abctechnologies'
                     }
                 }
             }
         }
+        // stage('Push Docker Image') {
+        //     steps {
+        //         script {
+        //             withCredentials([string(credentialsId: 'dockerhub_token_credentials', variable: 'DOCKERHUB_TOKEN')]) {
+        //                 docker.withRegistry("${DOCKER_REGISTRY}", "dockerhub_token_credentials") {
+        //                     def customImage = docker.build("abctechnologies")
+        //                     customImage.push()
+        //                 }
+        //             }
+        //         }
+        //     }
+        // }
         stage('Deploy on Kubernetes') {
             steps {
                 script {

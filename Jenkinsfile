@@ -8,13 +8,16 @@ pipeline {
     }
     
     stages {
-        stage('Build Docker Image') {
+        stage('Build and Push Docker Image') {
             steps {
                 script {
-                    // sh 'exit'
-                    // sh 'ssh-add /home/igor/.ssh/id_193rsa'
-                    // sh 'ssh  igor@10.0.0.193'
                     sh 'ansible-playbook -vvv docker_image.yml --connection=local'
+                    withCredentials([string(credentialsId: 'dockerhub_token_credentials', variable: 'DOCKERHUB_TOKEN')]) {
+                        docker.withRegistry("${DOCKER_REGISTRY}", "dockerhub_token_credentials") {
+                            def customImage = docker.build("abctechnologies")
+                            customImage.push()
+                        }
+                    }
                 }
             }
         }
@@ -29,18 +32,18 @@ pipeline {
         //         }
         //     }
         // }
-        stage('Push Docker Image') {
-            steps {
-                script {
-                    withCredentials([string(credentialsId: 'dockerhub_token_credentials', variable: 'DOCKERHUB_TOKEN')]) {
-                        docker.withRegistry("${DOCKER_REGISTRY}", "dockerhub_token_credentials") {
-                            def customImage = docker.build("abctechnologies")
-                            customImage.push()
-                        }
-                    }
-                }
-            }
-        }
+        // stage('Push Docker Image') {
+        //     steps {
+        //         script {
+        //             withCredentials([string(credentialsId: 'dockerhub_token_credentials', variable: 'DOCKERHUB_TOKEN')]) {
+        //                 docker.withRegistry("${DOCKER_REGISTRY}", "dockerhub_token_credentials") {
+        //                     def customImage = docker.build("abctechnologies")
+        //                     customImage.push()
+        //                 }
+        //             }
+        //         }
+        //     }
+        // }
         stage('Deploy on Kubernetes') {
             steps {
                 script {

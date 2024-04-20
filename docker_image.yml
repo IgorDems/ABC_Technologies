@@ -1,6 +1,6 @@
 ---
 - name: Build Docker Image
-  hosts: localhost
+  hosts: 10.0.0.193
   tasks:
     - name: Build Docker image
       docker_image:

@@ -90,7 +90,7 @@ pipeline {
             steps {
                 script {
                     // Assuming kubectl is installed and configured
-                    sh 'kubectl apply -f /var/jenkins-agent/workspace/ABC_AnsibleK8s/'
+                    sh 'kubectl apply -f /var/jenkins-agent/workspace/ABC_AnsibleK8s/deployment.yml'
                 }
             }
         }

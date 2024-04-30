@@ -5,10 +5,11 @@ FROM ubuntu:22.04
 RUN apt-get update && \
     apt-get install -y wget && \
     apt-get install -y openjdk-17-jdk && \
-    wget https://downloads.apache.org/tomcat/tomcat-9/v9.0.87/bin/apache-tomcat-9.0.88.tar.gz && \
+    wget https://downloads.apache.org/tomcat/tomcat-9/v9.0.88/bin/apache-tomcat-9.0.88.tar.gz && \
     tar -xzvf apache-tomcat-9.0.88.tar.gz && \
     mv apache-tomcat-9.0.88 /opt/tomcat && \
     rm -rf apache-tomcat-9.0.88.tar.gz
+    
 
 # Expose port 8080
 EXPOSE 8080

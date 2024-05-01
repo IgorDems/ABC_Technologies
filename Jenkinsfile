@@ -104,14 +104,14 @@ pipeline {
                 }
             }
         }
-        stage('Integrate Ansible with Kubernetes') {
-            steps {
-                script {
-                    // Integrate Kubernetes with Ansible here
-                    sh 'ansible-playbook kubernetes.yml --connection=local'
-                }
-            }
-        }
+        // stage('Integrate Ansible with Kubernetes') {
+        //     steps {
+        //         script {
+        //             // Integrate Kubernetes with Ansible here
+        //             sh 'ansible-playbook kubernetes.yml --connection=local'
+        //         }
+        //     }
+        // }
         stage('Create Deployment and Service') {
             steps {
                 script {

@@ -23,7 +23,7 @@
                   - name: abctechnologies-container
                     image: docker.io/demsdocker/abctechnologies
                     ports:
-                      - containerPort: 8080
+                      - containerPort: 8180
     - name: Create service
       k8s:
         definition:
@@ -37,5 +37,5 @@
             ports:
               - protocol: TCP
                 port: 80
-                targetPort: 8080
+                targetPort: 8180
             type: LoadBalancer

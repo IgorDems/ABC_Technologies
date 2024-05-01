@@ -1,6 +1,6 @@
 ---
-kind: Deployment
 apiVersion: apps/v1
+kind: Deployment
 metadata:
     name: abctechnologies-dep
 spec:
@@ -20,12 +20,13 @@ spec:
                 app: abc-tech-app
         spec:
             containers:
-                - image: demsdocker/abctechnologies
-                  name: app
+                - name: app
+                  image: demsdocker/abctechnologies
+                  ports:
+                      - containerPort: 8080
 ---
-
-kind: Service
 apiVersion: v1
+kind: Service
 metadata:
     name: abc-tech-service
 spec:
@@ -33,5 +34,5 @@ spec:
     selector:
         app: abc-tech-app
     ports:
-        - port: 80 #cluster port
-          targetPort: 8080 #container image port
+        - port: 80
+          targetPort: 8080

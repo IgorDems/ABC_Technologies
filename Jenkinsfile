@@ -116,7 +116,7 @@ pipeline {
             steps {
                 script {
                     // Create deployment and service using Ansible playbook
-                    sh 'ansible-playbook create_deployment_service.yml --connection=local'
+                    sh 'ansible-playbook -vvv create_deployment_service.yml --connection=local'
                 }
             }
         }

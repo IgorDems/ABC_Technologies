@@ -9,7 +9,7 @@ pipeline {
         }
         stage('Run Ansible Playbook') {
             steps {
-                ansiblePlaybook credentialsId: 'dockerhub_token_credentials', playbook: 'ansibleK8s.yml', become: true  # Use 'become' instead of 'connection'
+                ansiblePlaybook credentialsId: 'dockerhub_token_credentials', playbook: 'ansibleK8s.yml', become: true
             }
         }
     }

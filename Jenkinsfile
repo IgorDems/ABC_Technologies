@@ -3,8 +3,8 @@ pipeline {
         label 'agent193'
     }
     environment {
-        DOCKER_USERNAME = credentials('dockerhub_token_credentials').username // Use single or double quotes
-        DOCKER_PASSWORD = credentials('dockerhub_token_credentials').password // Use single or double quotes
+        DOCKER_USERNAME = 'credentials(\'dockerhub_token_credentials\').username' // Use single or double quotes
+        DOCKER_PASSWORD = 'credentials(\'dockerhub_token_credentials\').password' // Use single or double quotes
     }
 
     stages {

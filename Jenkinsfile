@@ -9,7 +9,8 @@ pipeline {
     stages {
         stage('Deploy with Ansible') {
             steps {
-                ansiblePlaybook playbook: 'ansibleK8s.yml'
+                // ansiblePlaybook playbook: 'ansibleK8s.yml'
+                sh 'ansible-playbook -i localhost, --connection=local ansibleK8s.yml'
             }
         }
     }

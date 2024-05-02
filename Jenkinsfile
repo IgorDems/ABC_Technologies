@@ -6,7 +6,22 @@ pipeline {
     stages {
         stage('Checkout Code') {
             steps {
-                git branch: 'master', url: 'https://github.com/IgorDems/ABC_Technologies.git'
+                git branch: 'ansiblekube', url: 'https://github.com/IgorDems/ABC_Technologies.git'
+            }
+        }
+        stage('Compile') {
+            steps {
+                sh 'mvn compile'
+            }
+        }
+        stage('Test') {
+            steps {
+                sh 'mvn test'
+            }
+        }
+        stage('Build') {
+            steps {
+                sh 'mvn package'
             }
         }
         stage('Run Ansible Playbook') {

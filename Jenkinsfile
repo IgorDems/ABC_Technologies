@@ -2,16 +2,15 @@ pipeline {
     agent {
         label 'agent193'
     }
-    environment {
-        DOCKER_USERNAME = 'credentials(\'dockerhub_token_credentials\').username' // Use single or double quotes
-        DOCKER_PASSWORD = 'credentials(\'dockerhub_token_credentials\').password' // Use single or double quotes
-    }
-
     stages {
-        stage('Deploy with Ansible') {
+        stage('Checkout Code') {
             steps {
-                // ansiblePlaybook playbook: 'ansibleK8s.yml'
-                sh 'ansible-playbook -i localhost, --connection=local ansibleK8s.yml'
+                git branch: 'ansiblekube', url: 'https://github.com/IgorDems/ABC_Technologies.git'
+            }
+        }
+        stage('Run Ansible Playbook') {
+            steps {
+                ansiblePlaybook credentialsId: 'dockerhub_token_credentials', playbook: 'ansibleK8s.yml', connection: 'local'
             }
         }
     }

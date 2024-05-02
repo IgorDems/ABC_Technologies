@@ -1,29 +1,27 @@
 ---
 - hosts: localhost
   become: yes
-  tasks:
-    - name: Docker login with token
-      community.general.docker_login:
-        registry_url: "https://index.docker.io/v1/"
-        username: "{{ ansible_env.DOCKER_USERNAME }}"
-        password: "{{ lookup('env', 'DOCKER_PASSWORD') }}"
-        password_stdin: false
+  environment:
+    DOCKER_USERNAME: "{{ docker_hub_username }}"
+    DOCKER_PASSWORD: "{{ docker_hub_password }}" # Use a variable name for clarity
 
+  tasks:
     - name: Build an image and push it to a private repo
       community.docker.docker_image:
         build:
           path: "/var/jenkins-agent/workspace/ABC_AnsibleK8s"
-          name: docker.io/demsdocker/abctechnologies
+          name: "{{ DOCKER_USERNAME }}/abctechnologies"
+          #tag: test
           push: true
           source: build
-      register: out
+        register: out
     - debug:
         var: out
 
-    - name: Start a container
+    - name: start a container
       community.docker.docker_container:
         name: abc-application
-        image: demsdocker/abctechnologies
+        image: "{{ DOCKER_USERNAME }}/abctechnologies"
         state: started
         ports:
           - "1234:8080"

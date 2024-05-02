@@ -10,7 +10,7 @@ pipeline {
         stage('Run Ansible Playbook') {
             steps {
                 script {
-                    sh 'ansible-playbook -i localhost, --extra-vars "dockerhub_username=${DOCKERHUB_USERNAME} dockerhub_password=${DOCKERHUB_PASSWORD}" ansibleK8s.yml'
+                    sh 'ansible-playbook -i localhost, --extra-vars "dockerhub_username=${DOCKERHUB_USERNAME} dockerhub_password=${DOCKERHUB_PASSWORD}" ansibleK8s.yml --connection=local'
                 }
             }
         }

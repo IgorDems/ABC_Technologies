@@ -1,27 +1,27 @@
 - hosts: localhost
   become: yes
   tasks:
-    - name: Log in to Docker Hub
-      community.general.docker_login:
-        username: "{{ dockerhub_username }}"
-        password: "{{ dockerhub_password }}"
-        registry_url: "https://index.docker.io/v1/"
-      register: docker_login_result
+    # - name: Log in to Docker Hub
+    #   community.general.docker_login:
+    #     username: "{{ dockerhub_username }}"
+    #     password: "{{ dockerhub_password }}"
+    #     registry_url: "https://index.docker.io/v1/"
+    #   register: docker_login_result
 
-    - name: Build an image and push it to a private repo
-      community.docker.docker_image:
-        build:
-          path: "/var/jenkins-agent/workspace/ABC_AnsibleK8s"
-          name: docker.io/demsdocker/abctechnologies
-          push: true
-          source: build
-        docker_host: "{{ docker_login_result.registry }}"
-        docker_password: "{{ docker_login_result.password }}"
-        docker_username: "{{ docker_login_result.username }}"
-      register: out
+    # - name: Build an image and push it to a private repo
+    #   community.docker.docker_image:
+    #     build:
+    #       path: "/var/jenkins-agent/workspace/ABC_AnsibleK8s"
+    #       name: docker.io/demsdocker/abctechnologies
+    #       push: true
+    #       source: build
+    #     docker_host: "{{ docker_login_result.registry }}"
+    #     docker_password: "{{ docker_login_result.password }}"
+    #     docker_username: "{{ docker_login_result.username }}"
+    #   register: out
 
-    - debug:
-        var: out
+    # - debug:
+    #     var: out
 
     - name: start a container
       community.docker.docker_container:
@@ -35,9 +35,9 @@
     - debug:
         var: out
 
-    - name: Create a Deployment by reading the definition from a local file
-      command: "kubectl --kubeconfig=/etc/kubernetes/admin.conf apply -f /var/jenkins-agent/workspace/ABC_AnsibleK8s/deployment.yml"
-      register: out
+    # - name: Create a Deployment by reading the definition from a local file
+    #   command: "kubectl --kubeconfig=/etc/kubernetes/admin.conf apply -f /var/jenkins-agent/workspace/ABC_AnsibleK8s/deployment.yml"
+    #   register: out
 
-    - debug:
-        var: out
+    # - debug:
+    #     var: out

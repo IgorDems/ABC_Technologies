@@ -1,16 +1,15 @@
 pipeline {
-    agent {
-        label 'agent193'
-    }
+    agent none
+
     stages {
         stage('Checkout Code') {
             steps {
-                git branch: 'ansiblekube', url: 'https://github.com/IgorDems/ABC_Technologies.git'
+                git branch: 'master', url: 'https://github.com/IgorDems/ABC_Technologies.git'
             }
         }
         stage('Run Ansible Playbook') {
             steps {
-                ansiblePlaybook credentialsId: 'dockerhub_token_credentials', playbook: 'ansibleK8s.yml', connection: 'local'
+                ansiblePlaybook credentialsId: 'dockerhub_token_credentials', playbook: 'ansibleK8s.yml', become: true  # Use 'become' instead of 'connection'
             }
         }
     }

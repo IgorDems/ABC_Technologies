@@ -1,36 +1,43 @@
----
 - hosts: localhost
   become: yes
-  environment:
-    DOCKER_USERNAME: "{{ docker_hub_username }}"
-    DOCKER_PASSWORD: "{{ docker_hub_password }}" # Use a variable name for clarity
-
   tasks:
+    - name: Log in to Docker Hub with token credentials
+      community.general.docker_login:
+        username: "_json_key"
+        password: "{{ lookup('jenkins_credentials', 'dockerhub_token_credentials') }}"
+        registry_url: "https://index.docker.io/v1/"
+      register: docker_login_result
+
     - name: Build an image and push it to a private repo
       community.docker.docker_image:
         build:
           path: "/var/jenkins-agent/workspace/ABC_AnsibleK8s"
-          name: "{{ DOCKER_USERNAME }}/abctechnologies"
-          #tag: test
+          name: docker.io/demsdocker/abctechnologies
           push: true
           source: build
-        register: out
+        docker_host: "{{ docker_login_result.registry }}"
+        docker_password: "{{ docker_login_result.password }}"
+        docker_username: "{{ docker_login_result.username }}"
+      register: out
+
     - debug:
         var: out
 
-    - name: start a container
+    - name: Start a container
       community.docker.docker_container:
         name: abc-application
-        image: "{{ DOCKER_USERNAME }}/abctechnologies"
+        image: demsdocker/abctechnologies
         state: started
         ports:
           - "1234:8080"
       register: out
+
     - debug:
         var: out
 
     - name: Create a Deployment by reading the definition from a local file
       command: "kubectl --kubeconfig=/etc/kubernetes/admin.conf apply -f /var/jenkins-agent/workspace/ABC_AnsibleK8s/deployment.yml"
       register: out
+
     - debug:
         var: out

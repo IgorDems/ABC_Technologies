@@ -1,5 +1,7 @@
 pipeline {
-    agent none
+    agent {
+        label 'agent193'
+    }
 
     stages {
         stage('Checkout Code') {

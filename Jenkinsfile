@@ -19,7 +19,7 @@ pipeline {
                     // Build Docker image
                     def dockerImage = docker.build('abctechnologies', '-f Dockerfile .')
 
-                    sh 'ansible-playbook -vvv ansibleK8s.yml --connection=local'
+                    // sh 'ansible-playbook -vvv ansibleK8s.yml --connection=local'
 
 
 

@@ -43,15 +43,29 @@ pipeline {
                 }
             }
         }
-        
         stage('Deploy on Kubernetes') {
             steps {
                 script {
                     // kubectl is installed and configured
-                    sh 'kubectl apply -f /var/jenkins-agent/workspace/ABC_AnsibleK8s/deployment.yml'
-                }
-            }
+                    sh '''
+                 kubectl apply -f /var/jenkins-agent/workspace/ABC_AnsibleK8s/deployment.yml \
+                        --certificate-authority=/var/jenkins-agent/kubernetes-ca.crt \
+                        --server=https://10.0.0.193:6443
+                    '''
         }
+    }
+}
+
+
+        
+        // stage('Deploy on Kubernetes') {
+        //     steps {
+        //         script {
+        //             // kubectl is installed and configured
+        //             sh 'kubectl apply -f /var/jenkins-agent/workspace/ABC_AnsibleK8s/deployment.yml'
+        //         }
+        //     }
+        // }
     
     }
 }

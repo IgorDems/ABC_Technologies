@@ -1,0 +1,51 @@
+```
+ABC_Technologies/
+├── .github/
+│   └── workflows/
+│       └── ci.yml
+├── ansible/
+│   ├── inventories/
+│   │   ├── development/
+│   │   │   └── hosts.yml
+│   │   └── production/
+│   │       └── hosts.yml
+│   ├── roles/
+│   │   └── k8s-deploy/
+│   │       ├── defaults/
+│   │       │   └── main.yml
+│   │       ├── tasks/
+│   │       │   └── main.yml
+│   │       └── templates/
+│   │           └── deployment.yml.j2
+│   ├── vars/
+│   │   ├── k8s-vars.yml
+│   │   └── vault.yml
+│   └── k8s-deploy.yml
+├── k8s/
+│   ├── base/
+│   │   ├── deployment.yml
+│   │   ├── service.yml
+│   │   ├── configmap.yml
+│   │   └── kustomization.yml
+│   └── overlays/
+│       ├── development/
+│       │   └── kustomization.yml
+│       └── production/
+│           └── kustomization.yml
+├── src/
+│   └── main/
+│       ├── java/
+│       │   └── com/
+│       │       └── abc/
+│       │           └── technologies/
+│       └── resources/
+│           └── application.properties
+├── tests/
+│   ├── integration/
+│   └── unit/
+├── .gitignore
+├── Dockerfile
+├── Jenkinsfile
+├── README.md
+└── pom.xml
+```

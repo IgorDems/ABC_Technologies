@@ -1,0 +1,94 @@
+---
+- name: Deploy Application to Kubernetes
+  hosts: localhost
+  become: yes
+  vars:
+    app_name: abctechnologies
+    docker_image: "demsdocker/{{ app_name }}"
+    namespace: abc-tech
+    deployment_name: "{{ app_name }}-dep"
+    health_check_retries: 10
+    health_check_delay: 10
+
+  tasks:
+    - name: Create namespace if not exists
+      kubernetes.core.k8s:
+        name: "{{ namespace }}"
+        api_version: v1
+        kind: Namespace
+        state: present
+
+    - name: Login to Docker Hub
+      community.general.docker_login:
+        username: "{{ dockerhub_username }}"
+        password: "{{ dockerhub_password }}"
+        registry_url: "https://index.docker.io/v1/"
+      when: dockerhub_username is defined and dockerhub_password is defined
+
+    - name: Build and push Docker image
+      community.docker.docker_image:
+        build:
+          path: "{{ playbook_dir }}"
+          dockerfile: Dockerfile
+        name: "{{ docker_image }}"
+        tag: "{{ lookup('env', 'BUILD_NUMBER') | default('latest', true) }}"
+        push: yes
+        source: build
+      register: build_result
+
+    - name: Create ConfigMap for application configuration
+      kubernetes.core.k8s:
+        state: present
+        definition:
+          apiVersion: v1
+          kind: ConfigMap
+          metadata:
+            name: "{{ app_name }}-config"
+            namespace: "{{ namespace }}"
+          data:
+            JAVA_OPTS: "-Xms512m -Xmx1024m"
+
+    - name: Deploy application
+      kubernetes.core.k8s:
+        state: present
+        namespace: "{{ namespace }}"
+        template: "{{ playbook_dir }}/deployment.yml"
+        template_parameters:
+          app_name: "{{ app_name }}"
+          image: "{{ docker_image }}:{{ lookup('env', 'BUILD_NUMBER') | default('latest', true) }}"
+      register: deployment_result
+
+    - name: Wait for deployment to be ready
+      kubernetes.core.k8s_info:
+        api_version: apps/v1
+        kind: Deployment
+        name: "{{ deployment_name }}"
+        namespace: "{{ namespace }}"
+        wait: yes
+        wait_timeout: 300
+        wait_condition:
+          type: Available
+          status: "True"
+      register: deployment_status
+      until: deployment_status.resources[0].status.availableReplicas is defined and 
+             deployment_status.resources[0].status.availableReplicas == deployment_status.resources[0].spec.replicas
+      retries: "{{ health_check_retries }}"
+      delay: "{{ health_check_delay }}"
+
+    - name: Verify service endpoints
+      kubernetes.core.k8s_info:
+        api_version: v1
+        kind: Service
+        name: abc-tech-service
+        namespace: "{{ namespace }}"
+      register: service_status
+
+    - name: Clean up old resources
+      kubernetes.core.k8s:
+        state: absent
+        namespace: "{{ namespace }}"
+        kind: Pod
+        label_selectors:
+          - "app={{ app_name }}"
+        field_selectors:
+          - status.phase=Succeeded

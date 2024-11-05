@@ -1,6 +1,7 @@
 ---
 - name: Kubernetes Connection Test
   hosts: localhost
+  connection: local
   become: yes
   collections:
     - kubernetes.core

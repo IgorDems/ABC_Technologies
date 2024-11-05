@@ -2,6 +2,8 @@
 - name: Kubernetes Connection Test
   hosts: localhost
   connection: local
+  environment:
+    KUBECONFIG: ~/.kube/config
   become: yes
   collections:
     - kubernetes.core

@@ -2,6 +2,11 @@
 - name: Deploy Application to Kubernetes
   hosts: localhost
   become: yes
+  collections:
+    - kubernetes.core
+    - community.docker
+    - community.general
+  
   vars:
     app_name: abctechnologies
     docker_image: "demsdocker/{{ app_name }}"
@@ -12,7 +17,7 @@
 
   tasks:
     - name: Create namespace if not exists
-      kubernetes.core.k8s:
+      k8s:
         name: "{{ namespace }}"
         api_version: v1
         kind: Namespace
@@ -37,7 +42,7 @@
       register: build_result
 
     - name: Create ConfigMap for application configuration
-      kubernetes.core.k8s:
+      k8s:
         state: present
         definition:
           apiVersion: v1
@@ -49,7 +54,7 @@
             JAVA_OPTS: "-Xms512m -Xmx1024m"
 
     - name: Deploy application
-      kubernetes.core.k8s:
+      k8s:
         state: present
         namespace: "{{ namespace }}"
         template: "{{ playbook_dir }}/deployment.yml"
@@ -59,7 +64,7 @@
       register: deployment_result
 
     - name: Wait for deployment to be ready
-      kubernetes.core.k8s_info:
+      k8s_info:
         api_version: apps/v1
         kind: Deployment
         name: "{{ deployment_name }}"
@@ -76,7 +81,7 @@
       delay: "{{ health_check_delay }}"
 
     - name: Verify service endpoints
-      kubernetes.core.k8s_info:
+      k8s_info:
         api_version: v1
         kind: Service
         name: abc-tech-service
@@ -84,7 +89,7 @@
       register: service_status
 
     - name: Clean up old resources
-      kubernetes.core.k8s:
+      k8s:
         state: absent
         namespace: "{{ namespace }}"
         kind: Pod

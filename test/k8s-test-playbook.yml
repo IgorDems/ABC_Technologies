@@ -1,6 +1,6 @@
 ---
 - name: Kubernetes Connection Test
-  hosts: K8s-control
+  hosts: localhost
   become: yes
   collections:
     - kubernetes.core

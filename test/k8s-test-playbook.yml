@@ -1,6 +1,6 @@
 ---
 - name: Kubernetes Connection Test
-  hosts: localhost
+  hosts: 10.0.0.193
   become: yes
   collections:
     - kubernetes.core

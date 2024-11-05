@@ -17,7 +17,7 @@
 
   tasks:
     - name: Create namespace if not exists
-      k8s:
+      kubernetes.core.k8s:
         name: "{{ namespace }}"
         api_version: v1
         kind: Namespace
@@ -42,7 +42,7 @@
       register: build_result
 
     - name: Create ConfigMap for application configuration
-      k8s:
+      kubernetes.core.k8s:
         state: present
         definition:
           apiVersion: v1
@@ -54,7 +54,7 @@
             JAVA_OPTS: "-Xms512m -Xmx1024m"
 
     - name: Deploy application
-      k8s:
+      kubernetes.core.k8s:
         state: present
         namespace: "{{ namespace }}"
         template: "{{ playbook_dir }}/deployment.yml"
@@ -64,7 +64,7 @@
       register: deployment_result
 
     - name: Wait for deployment to be ready
-      k8s_info:
+      kubernetes.core.k8s_info:
         api_version: apps/v1
         kind: Deployment
         name: "{{ deployment_name }}"
@@ -81,7 +81,7 @@
       delay: "{{ health_check_delay }}"
 
     - name: Verify service endpoints
-      k8s_info:
+      kubernetes.core.k8s_info:
         api_version: v1
         kind: Service
         name: abc-tech-service
@@ -89,7 +89,7 @@
       register: service_status
 
     - name: Clean up old resources
-      k8s:
+      kubernetes.core.k8s:
         state: absent
         namespace: "{{ namespace }}"
         kind: Pod

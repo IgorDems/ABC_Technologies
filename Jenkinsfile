@@ -1,81 +1,89 @@
+#!groovy
+
 pipeline {
     agent {
         label 'agent193'
     }
+    
     environment {
+        DOCKERHUB_CREDENTIALS = credentials('dockerhub_credentials')
         DOCKER_REGISTRY = 'docker.io'
+                
     }
+    
     stages {
-        stage('Compile') {
-            steps {
-                sh 'mvn compile'
-            }
-        }
-        stage('Test') {
-            steps {
-                sh 'mvn test'
-            }
-        }
-        stage('Build') {
-            steps {
-                sh 'mvn package'
-            }
-        }
-        stage('Stop and Remove Docker Containers') {
+        stage('Build Docker Image') {
             steps {
                 script {
-                    // Stop all running Docker containers
-                    sh 'docker stop $(docker ps -q) || true'
-                    
-                    // Remove all stopped Docker containers
-                    sh 'docker rm $(docker ps -aq) || true'
-                }
-            }
-        }
-        stage('Docker Build') {
-            steps {
-                script {
-                    // Stop and remove any existing Docker container based on 'abctechnologies' image
-                    // sh "docker stop abctechnologies-container || true"
-                    // sh "docker rm abctechnologies-container || true"
-
-                    // Delete all unused Docker images
-                    sh 'docker image prune -a --force'
-
                     // Build Docker image
                     def dockerImage = docker.build('abctechnologies', '-f Dockerfile .')
-
+                }       
+            }
+        }  
+        stage('Push Docker Image') {
+            steps {
+                script {
                     // Authenticate with Docker Hub
                     withCredentials([usernamePassword(credentialsId: 'dockerhub_credentials', usernameVariable: 'DOCKER_USERNAME', passwordVariable: 'DOCKER_PASSWORD')]) {
                     sh "docker login -u $DOCKER_USERNAME -p $DOCKER_PASSWORD"
-
                     // Tag Docker image
                     sh "docker tag abctechnologies $DOCKER_USERNAME/abctechnologies"
-
                     // Push Docker image to DockerHub
                     sh "docker push $DOCKER_USERNAME/abctechnologies"
                     // Echo success message for Docker image build and upload
                     echo "Successfully built and uploaded to DockerHub"
-                    // Pull Docker image from DockerHub
-                    sh "docker pull $DOCKER_USERNAME/abctechnologies"
-            }       
-
+                    }
+                }
+            }
+        }
+        stage('Pull Docker Image and start Docker container') {
+            steps {
+                script {
+                     sh 'ansible-playbook ansibleK8s.yml --connection=local'
                     // Echo success message for Docker image pull
-                    echo "Successfully pulled Docker image from DockerHub"
-                    // Start Docker container
-                    def dockerContainer = dockerImage.run('-d --name abctechnologies-container -p 8080:8080')
-
-                    // Get container ID
-                    def containerId = dockerContainer.id
-
-                     // Print container status and IP
-                    sh "docker inspect --format='{{.State.Status}}' $containerId"
-                    sh "docker inspect --format='{{.NetworkSettings.IPAddress}}' $containerId"
+                    echo "Successfully pull from DockerHub and start container"
+                }
+            }
+        }
+        
+        stage('Deploy on Kubernetes') {
+            steps {
+                script {
+                    withKubeConfig([
+                        credentialsId: 'kubernetes-ca',  // Using the credential ID you mentioned
+                        serverUrl: 'https://10.0.0.193:6443'
+                    ]) {
+                        // Create namespace if it doesn't exist
+                        sh 'kubectl create namespace abc-tech --dry-run=client -o yaml | kubectl apply -f -'
+                        
+                        // Apply RBAC configurations
+                        sh 'kubectl apply -f k8s/rbac.yml'
+                        
+                        // Apply deployment
+                        sh 'kubectl apply -f deployment.yml'
+                        
+                        // Wait for deployment
+                        sh '''
+                            kubectl rollout status deployment/abctechnologies-dep \
+                                -n abc-tech \
+                                --timeout=300s
+                        '''
+                    }
+                }
+            }
+        }
+        
+        stage('Test Kubernetes Connection') {
+            steps {
+                script {
+                    withKubeConfig([credentialsId: 'kubernetes-ca', serverUrl: 'https://10.0.0.193:6443']) {
+                        sh 'kubectl get nodes'
+            }
         }
     }
 }
-
-
-
     }
 }
+
+
+

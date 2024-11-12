@@ -1,3 +1,5 @@
+#!groovy
+
 pipeline {
     agent {
         label 'agent193'
@@ -6,7 +8,7 @@ pipeline {
     environment {
         DOCKERHUB_CREDENTIALS = credentials('dockerhub_credentials')
         DOCKER_REGISTRY = 'docker.io'
-               
+                
     }
     
     stages {
@@ -43,52 +45,45 @@ pipeline {
                 }
             }
         }
+            stages {
+        // Previous stages remain the same...
+        
         stage('Deploy on Kubernetes') {
-    steps {
-        script {
-            withKubeConfig([credentialsId: 'k8s-credentials',
-                           serverUrl: 'https://10.0.0.193:6443',
-                           certificateAuthorityData: readFile('/var/jenkins-agent/kubernetes-ca.crt')]) {
-                
-                // Create namespace if it doesn't exist
-                sh 'kubectl create namespace abc-tech --dry-run=client -o yaml | kubectl apply -f -'
-                
-                // Apply RBAC configurations
-                sh 'kubectl apply -f k8s/rbac.yml'
-                
-                // Deploy application
-                sh '''
-                    kubectl apply -f deployment.yml \
-                        --namespace=abc-tech \
-                        --token=$(kubectl get secret \
-                            $(kubectl get serviceaccount abc-tech-sa \
+            steps {
+                script {
+                    withKubeConfig([
+                        credentialsId: 'kubernetes-ca-cert',  // Using the credential ID you mentioned
+                        serverUrl: 'https://10.0.0.193:6443'
+                    ]) {
+                        // Create namespace if it doesn't exist
+                        sh 'kubectl create namespace abc-tech --dry-run=client -o yaml | kubectl apply -f -'
+                        
+                        // Apply RBAC configurations
+                        sh 'kubectl apply -f /k8s/rbac.yml'
+                        
+                        // Apply deployment
+                        sh 'kubectl apply -f deployment.yml'
+                        
+                        // Wait for deployment
+                        sh '''
+                            kubectl rollout status deployment/abctechnologies-dep \
                                 -n abc-tech \
-                                -o jsonpath='{.secrets[0].name}') \
-                            -n abc-tech \
-                            -o jsonpath='{.data.token}' | base64 --decode)
-                '''
-                
-                // Wait for deployment
-                sh '''
-                    kubectl rollout status deployment/abctechnologies-dep \
-                        -n abc-tech \
-                        --timeout=300s
-                '''
+                                --timeout=300s
+                        '''
+                    }
+                }
+            }
+        }
+        stage('Test Kubernetes Connection') {
+            steps {
+                script {
+                    withKubeConfig([credentialsId: 'kubernetes-ca-cert', serverUrl: 'https://10.0.0.193:6443']) {
+                        sh 'kubectl get nodes'
             }
         }
     }
 }
-
-
-        
-        // stage('Deploy on Kubernetes') {
-        //     steps {
-        //         script {
-        //             // kubectl is installed and configured
-        //             sh 'kubectl apply -f /var/jenkins-agent/workspace/ABC_AnsibleK8s/deployment.yml'
-        //         }
-        //     }
-        // }
+    }
     
     }
 }

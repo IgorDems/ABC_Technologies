@@ -3,6 +3,8 @@ kind: Deployment
 metadata:
     name: abctechnologies-dep
     namespace: abc-tech
+    labels:
+        app: abc-tech-app
 spec:
     replicas: 2
     minReadySeconds: 45
@@ -19,12 +21,14 @@ spec:
             labels:
                 app: abc-tech-app
         spec:
+            serviceAccountName: abc-tech-sa  # Add this line to use the RBAC service account
             tolerations:
                 - key: "node-role.kubernetes.io/control-plane"
                   operator: "Exists"
             containers:
                 - name: app
                   image: demsdocker/abctechnologies
+                  imagePullPolicy: Always  # Add this line
                   ports:
                       - containerPort: 8080
                         name: http

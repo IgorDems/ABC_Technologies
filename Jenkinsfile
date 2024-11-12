@@ -45,8 +45,6 @@ pipeline {
                 }
             }
         }
-            stages {
-        // Previous stages remain the same...
         
         stage('Deploy on Kubernetes') {
             steps {
@@ -74,6 +72,7 @@ pipeline {
                 }
             }
         }
+        
         stage('Test Kubernetes Connection') {
             steps {
                 script {
@@ -83,8 +82,6 @@ pipeline {
         }
     }
 }
-    }
-    
     }
 }
 

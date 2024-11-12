@@ -1,0 +1,32 @@
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: abc-tech-sa
+  namespace: abc-tech
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: abc-tech-role
+  namespace: abc-tech
+rules:
+- apiGroups: [""]
+  resources: ["pods", "services"]
+  verbs: ["get", "list", "watch"]
+- apiGroups: ["apps"]
+  resources: ["deployments"]
+  verbs: ["get", "list", "watch", "create", "update", "patch", "delete"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: abc-tech-rolebinding
+  namespace: abc-tech
+subjects:
+- kind: ServiceAccount
+  name: abc-tech-sa
+  namespace: abc-tech
+roleRef:
+  kind: Role
+  name: abc-tech-role
+  apiGroup: rbac.authorization.k8s.io

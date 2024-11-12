@@ -57,7 +57,7 @@ pipeline {
                         sh 'kubectl create namespace abc-tech --dry-run=client -o yaml | kubectl apply -f -'
                         
                         // Apply RBAC configurations
-                        sh 'kubectl apply -f /k8s/rbac.yml'
+                        sh 'kubectl apply -f k8s/rbac.yml'
                         
                         // Apply deployment
                         sh 'kubectl apply -f deployment.yml'

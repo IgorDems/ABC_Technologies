@@ -1,0 +1,77 @@
+---
+# Docker Registry Configuration
+dockerhub_username: "demsdocker"  # Your Docker Hub username
+dockerhub_password: "{{ vault_dockerhub_password }}"  # Reference to vault-encrypted password
+
+# Application Configuration
+app_name: "abctechnologies"
+namespace: "abc-tech"
+environment: "production"  # Options: development, staging, production
+
+# Deployment Configuration
+deployment_name: "abctechnologies-dep"
+replicas: 2
+image_tag: "{{ lookup('env', 'BUILD_NUMBER') | default('latest', true) }}"
+
+# Resource Allocation
+resources:
+  requests:
+    cpu: "250m"
+    memory: "512Mi"
+  limits:
+    cpu: "500m"
+    memory: "1Gi"
+
+# Java Application Settings
+java_opts:
+  xms: "512m"
+  xmx: "1024m"
+  additional_opts: "-XX:+UseG1GC -Dspring.profiles.active={{ environment }}"
+
+# Kubernetes Configuration
+k8s_config:
+  health_check_retries: 10
+  health_check_delay: 10
+  rolling_update:
+    max_surge: 2
+    max_unavailable: 1
+  min_ready_seconds: 45
+
+# Service Configuration
+service:
+  type: "NodePort"
+  port: 80
+  target_port: 8080
+
+# Monitoring Configuration
+monitoring:
+  enable_prometheus: true
+  scrape_interval: "15s"
+  metrics_path: "/metrics"
+
+# Logging Configuration
+logging:
+  level: "INFO"
+  format: "json"
+
+# Node Selection (if needed)
+node_selector:
+  role: "app"
+  environment: "{{ environment }}"
+
+# Additional Custom Variables
+custom_labels:
+  team: "abc-tech-team"
+  app_tier: "web"
+  cost_center: "abc-tech-dev"
+
+# Backup Configuration
+backup:
+  enabled: true
+  retention_days: 7
+  schedule: "0 2 * * *"
+
+# SSL/TLS Configuration (if needed)
+tls:
+  enabled: false
+  cert_secret_name: "abc-tech-tls"

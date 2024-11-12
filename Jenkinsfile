@@ -2,80 +2,147 @@ pipeline {
     agent {
         label 'agent193'
     }
+    
     environment {
+        DOCKERHUB_CREDENTIALS = credentials('dockerhub_credentials')
         DOCKER_REGISTRY = 'docker.io'
+        APP_NAME = 'abctechnologies'
+        DOCKER_IMAGE = "demsdocker/${APP_NAME}"
+        KUBE_CONFIG = credentials('kubernetes-config')
+        ANSIBLE_VAULT_PASSWORD = credentials('ansible-vault-password')
+        // Define environment-specific variables
+        DEPLOY_ENV = "${params.ENVIRONMENT ?: 'development'}"
     }
+    
+    parameters {
+        choice(name: 'ENVIRONMENT', choices: ['development', 'production'], description: 'Deployment Environment')
+        string(name: 'VERSION', defaultValue: '', description: 'Version to deploy (defaults to BUILD_NUMBER if empty)')
+    }
+    
     stages {
-        stage('Compile') {
-            steps {
-                sh 'mvn compile'
-            }
-        }
-        stage('Test') {
-            steps {
-                sh 'mvn test'
-            }
-        }
-        stage('Build') {
-            steps {
-                sh 'mvn package'
-            }
-        }
-        stage('Stop and Remove Docker Containers') {
+        stage('Initialize') {
             steps {
                 script {
-                    // Stop all running Docker containers
-                    sh 'docker stop $(docker ps -q) || true'
-                    
-                    // Remove all stopped Docker containers
-                    sh 'docker rm $(docker ps -aq) || true'
+                    // Set version
+                    env.VERSION = params.VERSION ?: env.BUILD_NUMBER
+                    // Create version tag
+                    env.IMAGE_TAG = "${env.VERSION}-${env.BUILD_NUMBER}"
                 }
             }
         }
-        stage('Docker Build') {
+        
+        stage('Build Application') {
             steps {
                 script {
-                    // Stop and remove any existing Docker container based on 'abctechnologies' image
-                    // sh "docker stop abctechnologies-container || true"
-                    // sh "docker rm abctechnologies-container || true"
-
-                    // Delete all unused Docker images
-                    sh 'docker image prune -a --force'
-
-                    // Build Docker image
-                    def dockerImage = docker.build('abctechnologies', '-f Dockerfile .')
-
-                    // Authenticate with Docker Hub
-                    withCredentials([usernamePassword(credentialsId: 'dockerhub_credentials', usernameVariable: 'DOCKER_USERNAME', passwordVariable: 'DOCKER_PASSWORD')]) {
-                    sh "docker login -u $DOCKER_USERNAME -p $DOCKER_PASSWORD"
-
-                    // Tag Docker image
-                    sh "docker tag abctechnologies $DOCKER_USERNAME/abctechnologies"
-
-                    // Push Docker image to DockerHub
-                    sh "docker push $DOCKER_USERNAME/abctechnologies"
-                    // Echo success message for Docker image build and upload
-                    echo "Successfully built and uploaded to DockerHub"
-                    // Pull Docker image from DockerHub
-                    sh "docker pull $DOCKER_USERNAME/abctechnologies"
-            }       
-
-                    // Echo success message for Docker image pull
-                    echo "Successfully pulled Docker image from DockerHub"
-                    // Start Docker container
-                    def dockerContainer = dockerImage.run('-d --name abctechnologies-container -p 8080:8080')
-
-                    // Get container ID
-                    def containerId = dockerContainer.id
-
-                     // Print container status and IP
-                    sh "docker inspect --format='{{.State.Status}}' $containerId"
-                    sh "docker inspect --format='{{.NetworkSettings.IPAddress}}' $containerId"
+                    sh 'mvn clean package -DskipTests'
+                }
+            }
+        }
+        
+        stage('Run Tests') {
+            parallel {
+                stage('Unit Tests') {
+                    steps {
+                        sh 'mvn test'
+                    }
+                }
+                stage('Integration Tests') {
+                    steps {
+                        sh 'mvn verify -DskipUnitTests'
+                    }
+                }
+            }
+        }
+        
+        stage('Build Docker Image') {
+            steps {
+                script {
+                    docker.build("${DOCKER_IMAGE}:${IMAGE_TAG}", "-f Dockerfile .")
+                }
+            }
+        }
+        
+        stage('Push Docker Image') {
+            steps {
+                script {
+                    withCredentials([usernamePassword(credentialsId: 'dockerhub_credentials', 
+                                                    usernameVariable: 'DOCKER_USERNAME', 
+                                                    passwordVariable: 'DOCKER_PASSWORD')]) {
+                        sh """
+                            echo "${DOCKER_PASSWORD}" | docker login -u "${DOCKER_USERNAME}" --password-stdin
+                            docker push ${DOCKER_IMAGE}:${IMAGE_TAG}
+                        """
+                    }
+                }
+            }
+        }
+        
+        stage('Deploy to Kubernetes') {
+            steps {
+                script {
+                    // Write Ansible vault password to file
+                    writeFile file: '.vault_pass', text: "${ANSIBLE_VAULT_PASSWORD}"
+                    
+                    // Run Ansible playbook
+                    sh """
+                        ansible-playbook ansible/k8s-deploy.yml \
+                            -e @ansible/vars/k8s-vars.yml \
+                            -e @ansible/vars/vault.yml \
+                            -e "environment=${DEPLOY_ENV}" \
+                            -e "image_tag=${IMAGE_TAG}" \
+                            --vault-password-file .vault_pass
+                    """
+                    
+                    // Clean up vault password file
+                    sh 'rm -f .vault_pass'
+                }
+            }
+        }
+        
+        stage('Verify Deployment') {
+            steps {
+                script {
+                    sh """
+                        kubectl --kubeconfig=${KUBE_CONFIG} \
+                            wait --for=condition=available \
+                            --timeout=300s \
+                            deployment/${APP_NAME}-dep \
+                            -n abc-tech-${DEPLOY_ENV}
+                    """
+                }
+            }
         }
     }
-}
-
-
-
+    
+    post {
+        success {
+            script {
+                // Tag successful deployment in Git
+                sh """
+                    git tag -a v${VERSION} -m "Version ${VERSION} deployed to ${DEPLOY_ENV}"
+                    git push origin v${VERSION}
+                """
+            }
+        }
+        always {
+            // Clean up Docker images
+            sh """
+                docker rmi ${DOCKER_IMAGE}:${IMAGE_TAG} || true
+                docker system prune -f
+            """
+            
+            // Send notification
+            emailext (
+                subject: "Pipeline ${currentBuild.result}: Job '${env.JOB_NAME} [${env.BUILD_NUMBER}]'",
+                body: """
+                    Build Status: ${currentBuild.result}
+                    Build Number: ${env.BUILD_NUMBER}
+                    Build URL: ${env.BUILD_URL}
+                    Environment: ${DEPLOY_ENV}
+                    Version: ${VERSION}
+                """,
+                recipientProviders: [[$class: 'DevelopersRecipientProvider']]
+            )
+        }
     }
 }

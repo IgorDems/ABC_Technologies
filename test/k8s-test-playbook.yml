@@ -1,0 +1,109 @@
+---
+- name: Kubernetes Connection Test
+  hosts: localhost
+  connection: local
+  environment:
+    KUBECONFIG: ~/.kube/config
+  become: yes
+  collections:
+    - kubernetes.core
+    - community.general
+  
+  vars:
+    test_namespace: default
+    test_configmap_name: test-config
+    
+  tasks:
+    - name: Verify Kubernetes Python package
+      pip:
+        name: kubernetes
+        state: present
+      ignore_errors: true
+      register: pip_result
+
+    - name: Display Python package status
+      debug:
+        var: pip_result
+
+    - name: Verify kubeconfig exists
+      stat:
+        path: ~/.kube/config
+      register: kube_config
+
+    - name: Check kubeconfig access
+      fail:
+        msg: "No kubeconfig found at ~/.kube/config"
+      when: not kube_config.stat.exists
+
+    - name: Test Kubernetes API connection
+      k8s_info:
+        kind: Namespace
+        name: "{{ test_namespace }}"
+      register: ns_test
+      ignore_errors: true
+
+    - name: Display Kubernetes connection result
+      debug:
+        var: ns_test
+
+    - name: Verify Kubernetes connection status
+      fail:
+        msg: "Failed to connect to Kubernetes cluster"
+      when: ns_test.failed is defined and ns_test.failed
+
+    - name: List all namespaces
+      k8s_info:
+        kind: Namespace
+      register: all_namespaces
+
+    - name: Display available namespaces
+      debug:
+        msg: "Available namespaces: {{ all_namespaces.resources | map(attribute='metadata.name') | list }}"
+
+    - name: Create test ConfigMap
+      k8s:
+        state: present
+        kind: ConfigMap
+        namespace: "{{ test_namespace }}"
+        name: "{{ test_configmap_name }}"
+        definition:
+          apiVersion: v1
+          kind: ConfigMap
+          metadata:
+            name: "{{ test_configmap_name }}"
+          data:
+            test_key: "test_value"
+      register: configmap_result
+      ignore_errors: true
+
+    - name: Display ConfigMap creation result
+      debug:
+        var: configmap_result
+
+    - name: Clean up test ConfigMap
+      k8s:
+        state: absent
+        kind: ConfigMap
+        namespace: "{{ test_namespace }}"
+        name: "{{ test_configmap_name }}"
+      when: configmap_result is success
+      ignore_errors: true
+
+    - name: Final connection status
+      debug:
+        msg: >
+          Kubernetes connection test summary:
+          - Python package: {{ 'OK' if pip_result is success else 'Failed' }}
+          - Kubeconfig: {{ 'OK' if kube_config.stat.exists else 'Missing' }}
+          - API Connection: {{ 'OK' if ns_test is success else 'Failed' }}
+          - ConfigMap Test: {{ 'OK' if configmap_result is success else 'Failed' }}
+
+    - name: Check cluster node status
+      k8s_info:
+        kind: Node
+      register: nodes
+
+    - name: Display node information
+      debug:
+        msg: "Node {{ item.metadata.name }} is {{ item.status.conditions | selectattr('type', 'eq', 'Ready') | map(attribute='status') | first }}"
+      loop: "{{ nodes.resources }}"

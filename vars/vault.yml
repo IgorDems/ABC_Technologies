@@ -1,0 +1,19 @@
+---
+# Encrypted with ansible-vault
+vault_dockerhub_password: !vault |
+          $ANSIBLE_VAULT;1.1;AES256
+          <!-- Replace this with your encrypted Docker Hub password -->
+
+# Additional sensitive information if needed
+vault_db_credentials:
+  username: !vault |
+          $ANSIBLE_VAULT;1.1;AES256
+          <!-- Replace with encrypted database username -->
+  password: !vault |
+          $ANSIBLE_VAULT;1.1;AES256
+          <!-- Replace with encrypted database password -->
+
+vault_api_keys:
+  monitoring: !vault |
+          $ANSIBLE_VAULT;1.1;AES256
+          <!-- Replace with encrypted monitoring API key -->

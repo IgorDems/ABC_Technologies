@@ -50,7 +50,7 @@ pipeline {
             steps {
                 script {
                     withKubeConfig([
-                        credentialsId: 'kubernetes-ca-cert',  // Using the credential ID you mentioned
+                        credentialsId: 'kubernetes-ca',  // Using the credential ID you mentioned
                         serverUrl: 'https://10.0.0.193:6443'
                     ]) {
                         // Create namespace if it doesn't exist
@@ -76,7 +76,7 @@ pipeline {
         stage('Test Kubernetes Connection') {
             steps {
                 script {
-                    withKubeConfig([credentialsId: 'kubernetes-ca-cert', serverUrl: 'https://10.0.0.193:6443']) {
+                    withKubeConfig([credentialsId: 'kubernetes-ca', serverUrl: 'https://10.0.0.193:6443']) {
                         sh 'kubectl get nodes'
             }
         }

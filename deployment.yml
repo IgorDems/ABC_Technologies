@@ -32,18 +32,18 @@ spec:
                   ports:
                       - containerPort: 8080
                         name: http
-                  livenessProbe:
-                    httpGet:
-                      path: /abctechnologies-1.0
-                      port: 8080
-                    initialDelaySeconds: 60
-                    periodSeconds: 20
-                  readinessProbe:
-                    httpGet:
-                      path: /abctechnologies-1.0
-                      port: 8080
-                    initialDelaySeconds: 30
-                    periodSeconds: 10
+                  # livenessProbe:
+                  #   httpGet:
+                  #     path: /abctechnologies-1.0
+                  #     port: 8080
+                  #   initialDelaySeconds: 60
+                  #   periodSeconds: 20
+                  # readinessProbe:
+                  #   httpGet:
+                  #     path: /abctechnologies-1.0
+                  #     port: 8080
+                  #   initialDelaySeconds: 30
+                  #   periodSeconds: 10
 ---
 apiVersion: v1
 kind: Service

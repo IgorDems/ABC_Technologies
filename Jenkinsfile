@@ -50,19 +50,19 @@ pipeline {
             steps {
                 script {
                     withKubeConfig([
-                        credentialsId: 'kubernetes-ca',  // Using the credential ID you mentioned
+                        credentialsId: 'kubernetes-ca',
                         serverUrl: 'https://10.0.0.193:6443'
                     ]) {
-                        // Create namespace if it doesn't exist
+                        echo "Create namespace if it doesn't exist"
                         sh 'kubectl create namespace abc-tech --dry-run=client -o yaml | kubectl apply -f -'
                         
-                        // Apply RBAC configurations
+                        echo "Apply RBAC configurations"
                         sh 'kubectl apply -f k8s/rbac.yml'
                         
-                        // Apply deployment
+                        echo "Apply deployment"
                         sh 'kubectl apply -f deployment.yml'
                         
-                        // Wait for deployment
+                        echo "Wait for deployment"
                         sh '''
                             kubectl rollout status deployment/abctechnologies-dep \
                                 -n abc-tech \

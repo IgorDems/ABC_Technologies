@@ -53,20 +53,20 @@ pipeline {
                         credentialsId: 'kubernetes-ca',
                         serverUrl: 'https://10.0.0.193:6443'
                     ]) {
-                        echo "Create namespace if it doesn't exist"
+                        echo "=Create namespace if it doesn't exist="
                         sh 'kubectl create namespace abc-tech --dry-run=client -o yaml | kubectl apply -f -'
                         
-                        echo "Apply RBAC configurations"
+                        echo "=Apply RBAC configurations="
                         sh 'kubectl apply -f k8s/rbac.yml'
                         
-                        echo "Apply deployment"
+                        echo "=Apply deployment="
                         sh 'kubectl apply -f deployment.yml'
                         
-                        echo "Wait for deployment"
+                        echo "=Wait for deployment="
                         sh '''
                             kubectl rollout status deployment/abctechnologies-dep \
                                 -n abc-tech \
-                                --timeout=300s
+                                --timeout=600s
                         '''
                     }
                 }

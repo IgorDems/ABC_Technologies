@@ -36,15 +36,15 @@ pipeline {
                 }
             }
         }
-        stage('Pull Docker Image and start Docker container') {
-            steps {
-                script {
-                     sh 'ansible-playbook ansibleK8s.yml --connection=local'
-                    // Echo success message for Docker image pull
-                    echo "Successfully pull from DockerHub and start container"
-                }
-            }
-        }
+        // stage('Pull Docker Image and start Docker container') {
+        //     steps {
+        //         script {
+        //              sh 'ansible-playbook ansibleK8s.yml --connection=local'
+        //             // Echo success message for Docker image pull
+        //             echo "Successfully pull from DockerHub and start container"
+        //         }
+        //     }
+        // }
         
         stage('Deploy on Kubernetes') {
             steps {

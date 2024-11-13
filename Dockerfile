@@ -30,4 +30,4 @@ EXPOSE 8080
 USER tomcat
 
 # Start Apache Tomcat
-CMD ["catalina.sh", "run"]
+CMD ["/opt/tomcat/bin/catalina.sh", "run"]

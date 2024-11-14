@@ -37,24 +37,75 @@ pipeline {
         stage('Pull Docker Image and start Docker container') {
             steps {
                 script {
-                     sh 'ansible-playbook ansibleK8s.yml --connection=local'
+                     sh 'ansible-playbook ansible/ansibleK8s.yml --connection=local'
                     // Echo success message for Docker image pull
                     echo "Successfully pull from DockerHub and start container"
                 }
             }
         }
+
         stage('Deploy on Kubernetes') {
             steps {
                 script {
-                    // kubectl is installed and configured
-                    sh '''
-                 kubectl apply -f /var/jenkins-agent/workspace/ABC_AnsibleK8s/deployment.yml \
-                        --certificate-authority=/var/jenkins-agent/kubernetes-ca.crt \
-                        --server=https://10.0.0.193:6443
-                    '''
+                    try {
+                        withKubeConfig([
+                            credentialsId: 'kubernetes-ca',
+                            serverUrl: 'https://10.0.0.193:6443'
+                        ]) {
+                            sh """
+                                # Create namespace
+                                kubectl create namespace ${NAMESPACE} --dry-run=client -o yaml | kubectl apply -f -
+                                
+                                # Apply RBAC
+                                kubectl apply -f k8s/rbac.yml
+                                
+                                # Apply deployment
+                                kubectl apply -f deployment.yml
+                                
+                                # Wait for deployment to be ready
+                                echo "Waiting for deployment to be ready..."
+                                kubectl rollout status deployment/abctechnologies-dep -n ${NAMESPACE} --timeout=900s
+                                
+                                # Verify deployment
+                                echo "Verifying deployment..."
+                                kubectl get deployment abctechnologies-dep -n ${NAMESPACE} -o wide
+                                
+                                # Check pods
+                                echo "Checking pod status..."
+                                kubectl get pods -n ${NAMESPACE} -l app=abc-tech-app -o wide
+                                
+                                # Get recent events
+                                echo "Recent events:"
+                                kubectl get events -n ${NAMESPACE} --sort-by=.metadata.creationTimestamp | tail -n 20
+                            """
+                        }
+                    } catch (Exception e) {
+                        // Get additional debugging information if deployment fails
+                        sh """
+                            kubectl describe pods -n ${NAMESPACE} -l app=abc-tech-app
+                            kubectl logs -n ${NAMESPACE} -l app=abc-tech-app --all-containers --tail=100
+                        """
+                        error "Deployment failed: ${e.message}"
+                    }
+                }
+            }
         }
     }
-}
+
+
+
+//         stage('Deploy on Kubernetes') {
+//             steps {
+//                 script {
+//                     // kubectl is installed and configured
+//                     sh '''
+//                  kubectl apply -f /var/jenkins-agent/workspace/ABC_AnsibleK8s/k8s/deployment.yml \
+//                         --certificate-authority=/var/jenkins-agent/kubernetes-ca.crt \
+//                         --server=https://10.0.0.193:6443
+//                     '''
+//         }
+//     }
+// }
 
 
         
@@ -62,7 +113,7 @@ pipeline {
         //     steps {
         //         script {
         //             // kubectl is installed and configured
-        //             sh 'kubectl apply -f /var/jenkins-agent/workspace/ABC_AnsibleK8s/deployment.yml'
+        //             sh 'kubectl apply -f /var/jenkins-agent/workspace/ABC_AnsibleK8s/k8s/deployment.yml'
         //         }
         //     }
         // }

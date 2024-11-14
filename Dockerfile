@@ -1,10 +1,30 @@
-FROM docker.io/library/ubuntu:22.04
-RUN apt-get -y update && apt-get -y upgrade
-RUN apt-get -y install openjdk-21-jdk wget
-RUN mkdir /usr/local/tomcat
-ADD https://dlcdn.apache.org/tomcat/tomcat-11/v11.0.0-M17/bin/apache-tomcat-11.0.0-M17.tar.gz  /tmp/apache-tomcat-11.0.0-M17.tar.gz
-RUN cd /tmp &&  tar xvfz apache-tomcat-11.0.0-M17.tar.gz
-RUN cp -Rv /tmp/apache-tomcat-11.0.0-M17/* /usr/local/tomcat/
-ADD /var/jenkins-agent/workspace/PipeLine/target/*.war /usr/local/tomcat/webapps
+# Use a base Ubuntu image
+FROM ubuntu:22.04
+
+# Avoid prompts from apt
+ENV DEBIAN_FRONTEND=noninteractive
+
+# Create the directory for Tomcat
+RUN mkdir -p /opt/tomcat
+
+# Install required packages and set up Tomcat
+RUN apt-get update && \
+    apt-get install -y wget openjdk-17-jdk curl && \
+    # Get the latest Tomcat 9 version dynamically
+    TOMCAT_VERSION=$(curl -s https://downloads.apache.org/tomcat/tomcat-9/ | grep -o 'v9\.0\.[0-9]*' | sort -V | tail -n 1) && \
+    echo "Latest Tomcat version: ${TOMCAT_VERSION}" && \
+    wget "https://downloads.apache.org/tomcat/tomcat-9/${TOMCAT_VERSION}/bin/apache-tomcat-${TOMCAT_VERSION#v}.tar.gz" && \
+    tar -xzvf apache-tomcat-*.tar.gz -C /opt/tomcat --strip-components=1 && \
+    rm -rf apache-tomcat-*.tar.gz && \
+    # Make the scripts executable
+    chmod +x /opt/tomcat/bin/*.sh
+
+# Set environment variables
+ENV CATALINA_HOME=/opt/tomcat
+ENV PATH=$CATALINA_HOME/bin:$PATH
+
+# Expose the default Tomcat port
 EXPOSE 8080
-CMD /usr/local/tomcat/bin/catalina.sh run
+
+# Start Apache Tomcat
+CMD ["/opt/tomcat/bin/catalina.sh", "run"]

@@ -6,6 +6,8 @@ pipeline {
     environment {
         DOCKERHUB_CREDENTIALS = credentials('dockerhub_credentials')
         DOCKER_REGISTRY = 'docker.io'
+        NAMESPACE = 'abc-tech'
+        APP_NAME = 'abctechnologies'
                
     }
     

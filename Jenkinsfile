@@ -62,7 +62,7 @@ pipeline {
                                 kubectl apply -f k8s/rbac.yml
                                 
                                 # Apply deployment
-                                kubectl apply -f deployment.yml
+                                kubectl apply -f k8s/deployment.yml
                                 
                                 # Wait for deployment to be ready
                                 echo "Waiting for deployment to be ready..."

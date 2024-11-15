@@ -63,6 +63,8 @@ pipeline {
                                 
                                 # Apply deployment
                                 kubectl apply -f k8s/deployment.yml
+
+                                kubectl apply -f k8s/service.yml
                                 
                                 # Wait for deployment to be ready
                                 echo "Waiting for deployment to be ready..."

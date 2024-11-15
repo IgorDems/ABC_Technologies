@@ -35,7 +35,7 @@ spec:
                         name: http
                   livenessProbe:
                     httpGet:
-                      path: /abctechnologies-1.0
+                      path: /ABCtechnologies-1.0
                       port: 8080
                     initialDelaySeconds: 90  # Increased from 60
                     periodSeconds: 20
@@ -43,7 +43,7 @@ spec:
                     failureThreshold: 3  # Add this
                   readinessProbe:
                     httpGet:
-                      path: /abctechnologies-1.0
+                      path: /ABCtechnologies-1.0
                       port: 8080
                     initialDelaySeconds: 45  # Increased from 30
                     periodSeconds: 10

@@ -1,81 +1,132 @@
+#!groovy
+
 pipeline {
     agent {
         label 'agent193'
     }
+    
     environment {
+        DOCKERHUB_CREDENTIALS = credentials('dockerhub_credentials')
         DOCKER_REGISTRY = 'docker.io'
+        NAMESPACE = 'abc-tech'
+        APP_NAME = 'abctechnologies'
     }
+    
     stages {
-        stage('Compile') {
-            steps {
-                sh 'mvn compile'
-            }
-        }
-        stage('Test') {
-            steps {
-                sh 'mvn test'
-            }
-        }
-        stage('Build') {
-            steps {
-                sh 'mvn package'
-            }
-        }
-        stage('Stop and Remove Docker Containers') {
+        stage('Build Docker Image') {
             steps {
                 script {
-                    // Stop all running Docker containers
-                    sh 'docker stop $(docker ps -q) || true'
-                    
-                    // Remove all stopped Docker containers
-                    sh 'docker rm $(docker ps -aq) || true'
+                    try {
+                        def dockerImage = docker.build('abctechnologies', '-f Dockerfile .')
+                    } catch (Exception e) {
+                        error "Failed to build Docker image: ${e.message}"
+                    }
+                }       
+            }
+        }  
+
+        stage('Push Docker Image') {
+            steps {
+                script {
+                    try {
+                        withCredentials([usernamePassword(credentialsId: 'dockerhub_credentials', 
+                                                        usernameVariable: 'DOCKER_USERNAME', 
+                                                        passwordVariable: 'DOCKER_PASSWORD')]) {
+                            sh """
+                                echo "Logging into DockerHub..."
+                                docker login -u $DOCKER_USERNAME -p $DOCKER_PASSWORD
+                                
+                                echo "Tagging image..."
+                                docker tag abctechnologies $DOCKER_USERNAME/abctechnologies:latest
+                                
+                                echo "Pushing image..."
+                                docker push $DOCKER_USERNAME/abctechnologies:latest
+                            """
+                        }
+                    } catch (Exception e) {
+                        error "Failed to push Docker image: ${e.message}"
+                    }
                 }
             }
         }
-        stage('Docker Build') {
+
+        stage('Verify Docker Image') {
             steps {
                 script {
-                    // Stop and remove any existing Docker container based on 'abctechnologies' image
-                    // sh "docker stop abctechnologies-container || true"
-                    // sh "docker rm abctechnologies-container || true"
+                    try {
+                        withCredentials([usernamePassword(credentialsId: 'dockerhub_credentials', 
+                                                        usernameVariable: 'DOCKER_USERNAME', 
+                                                        passwordVariable: 'DOCKER_PASSWORD')]) {
+                            sh """
+                                echo "Pulling latest image..."
+                                docker pull ${DOCKER_USERNAME}/abctechnologies:latest
+                                
+                                echo "Verifying Tomcat installation..."
+                                docker run --rm ${DOCKER_USERNAME}/abctechnologies:latest /opt/tomcat/bin/version.sh
+                            """
+                        }
+                    } catch (Exception e) {
+                        error "Failed to verify Docker image: ${e.message}"
+                    }
+                }
+            }
+        }
 
-                    // Delete all unused Docker images
-                    sh 'docker image prune -a --force'
-
-                    // Build Docker image
-                    def dockerImage = docker.build('abctechnologies', '-f Dockerfile .')
-
-                    // Authenticate with Docker Hub
-                    withCredentials([usernamePassword(credentialsId: 'dockerhub_credentials', usernameVariable: 'DOCKER_USERNAME', passwordVariable: 'DOCKER_PASSWORD')]) {
-                    sh "docker login -u $DOCKER_USERNAME -p $DOCKER_PASSWORD"
-
-                    // Tag Docker image
-                    sh "docker tag abctechnologies $DOCKER_USERNAME/abctechnologies"
-
-                    // Push Docker image to DockerHub
-                    sh "docker push $DOCKER_USERNAME/abctechnologies"
-                    // Echo success message for Docker image build and upload
-                    echo "Successfully built and uploaded to DockerHub"
-                    // Pull Docker image from DockerHub
-                    sh "docker pull $DOCKER_USERNAME/abctechnologies"
-            }       
-
-                    // Echo success message for Docker image pull
-                    echo "Successfully pulled Docker image from DockerHub"
-                    // Start Docker container
-                    def dockerContainer = dockerImage.run('-d --name abctechnologies-container -p 8080:8080')
-
-                    // Get container ID
-                    def containerId = dockerContainer.id
-
-                     // Print container status and IP
-                    sh "docker inspect --format='{{.State.Status}}' $containerId"
-                    sh "docker inspect --format='{{.NetworkSettings.IPAddress}}' $containerId"
+        stage('Deploy on Kubernetes') {
+            steps {
+                script {
+                    try {
+                        withKubeConfig([
+                            credentialsId: 'kubernetes-ca',
+                            serverUrl: 'https://10.0.0.193:6443'
+                        ]) {
+                            sh """
+                                # Create namespace
+                                kubectl create namespace ${NAMESPACE} --dry-run=client -o yaml | kubectl apply -f -
+                                
+                                # Apply RBAC
+                                kubectl apply -f k8s/rbac.yml
+                                
+                                # Apply deployment
+                                kubectl apply -f deployment.yml
+                                
+                                # Wait for deployment to be ready
+                                echo "Waiting for deployment to be ready..."
+                                kubectl rollout status deployment/abctechnologies-dep -n ${NAMESPACE} --timeout=900s
+                                
+                                # Verify deployment
+                                echo "Verifying deployment..."
+                                kubectl get deployment abctechnologies-dep -n ${NAMESPACE} -o wide
+                                
+                                # Check pods
+                                echo "Checking pod status..."
+                                kubectl get pods -n ${NAMESPACE} -l app=abc-tech-app -o wide
+                                
+                                # Get recent events
+                                echo "Recent events:"
+                                kubectl get events -n ${NAMESPACE} --sort-by=.metadata.creationTimestamp | tail -n 20
+                            """
+                        }
+                    } catch (Exception e) {
+                        // Get additional debugging information if deployment fails
+                        sh """
+                            kubectl describe pods -n ${NAMESPACE} -l app=abc-tech-app
+                            kubectl logs -n ${NAMESPACE} -l app=abc-tech-app --all-containers --tail=100
+                        """
+                        error "Deployment failed: ${e.message}"
+                    }
+                }
+            }
         }
     }
-}
-
-
-
+    
+    post {
+        failure {
+            echo 'Pipeline failed! Collecting debug information...'
+            sh 'kubectl get events -n abc-tech --sort-by=.metadata.creationTimestamp'
+        }
+        cleanup {
+            sh 'docker logout'
+        }
     }
 }

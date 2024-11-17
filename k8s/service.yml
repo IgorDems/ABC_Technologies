@@ -2,11 +2,12 @@ apiVersion: v1
 kind: Service
 metadata:
   name: abc-tech-service
+  namespace: abc-tech
 spec:
   type: LoadBalancer
   selector:
     app: abc-tech-app
   ports:
-    - protocol: TCP
-      port: 80
-      targetPort: 80
+  - protocol: TCP
+    port: 80
+    targetPort: 8080

@@ -1,32 +1,64 @@
 apiVersion: v1
 kind: ServiceAccount
 metadata:
-  name: abc-tech-sa
-  namespace: abc-tech
+  name: metallb-controller
+  namespace: metallb-system
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: metallb-speaker
+  namespace: metallb-system
 ---
 apiVersion: rbac.authorization.k8s.io/v1
-kind: Role
+kind: ClusterRole
 metadata:
-  name: abc-tech-role
-  namespace: abc-tech
+  name: metallb-controller
 rules:
 - apiGroups: [""]
-  resources: ["pods", "services"]
-  verbs: ["get", "list", "watch"]
-- apiGroups: ["apps"]
-  resources: ["deployments"]
-  verbs: ["get", "list", "watch", "create", "update", "patch", "delete"]
+  resources: ["configmaps", "services", "endpoints", "nodes", "pods", "secrets"]
+  verbs: ["get", "watch", "list"]
+- apiGroups: ["metallb.io"]
+  resources: ["addresspools", "l2advertisements"]
+  verbs: ["get", "watch", "list"]
 ---
 apiVersion: rbac.authorization.k8s.io/v1
-kind: RoleBinding
+kind: ClusterRoleBinding
 metadata:
-  name: abc-tech-rolebinding
-  namespace: abc-tech
+  name: metallb-controller
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: metallb-controller
 subjects:
 - kind: ServiceAccount
-  name: abc-tech-sa
-  namespace: abc-tech
+  name: metallb-controller
+  namespace: metallb-system
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: metallb-speaker
+rules:
+- apiGroups: [""]
+  resources: ["services", "endpoints", "pods", "nodes"]
+  verbs: ["get", "watch", "list"]
+- apiGroups: ["metallb.io"]
+  resources: ["addresspools", "l2advertisements"]
+  verbs: ["get", "watch", "list"]
+- apiGroups: ["discovery.k8s.io"]
+  resources: ["endpointslices"]
+  verbs: ["get", "watch", "list"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: metallb-speaker
 roleRef:
-  kind: Role
-  name: abc-tech-role
   apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: metallb-speaker
+subjects:
+- kind: ServiceAccount
+  name: metallb-speaker
+  namespace: metallb-system

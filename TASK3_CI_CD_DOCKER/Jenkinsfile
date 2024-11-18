@@ -15,7 +15,8 @@ pipeline {
     }
     
     stages {
-                stage('Checkout') {
+
+        stage('Checkout') {
             steps {
                 checkout scm
             }
@@ -87,12 +88,4 @@ pipeline {
         }
     }
 
-    post {
-        success {
-            echo 'Pipeline completed successfully!'
-        }
-        failure {
-            echo 'Pipeline failed!'
-        }
-    }
 }

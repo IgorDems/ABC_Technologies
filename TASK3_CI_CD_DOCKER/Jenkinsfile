@@ -46,65 +46,65 @@ pipeline {
             }
         }
 
-        stage('Deploy on Kubernetes') {
-            steps {
-                script {
-                    try {
-                        withKubeConfig([
-                            credentialsId: 'kubernetes-ca',
-                            serverUrl: 'https://10.0.0.193:6443'
-                        ]) {
-                            sh """
-                                # Create namespace
-                                kubectl create namespace ${NAMESPACE} --dry-run=client -o yaml | kubectl apply -f -
+        // stage('Deploy on Kubernetes') {
+        //     steps {
+        //         script {
+        //             try {
+        //                 withKubeConfig([
+        //                     credentialsId: 'kubernetes-ca',
+        //                     serverUrl: 'https://10.0.0.193:6443'
+        //                 ]) {
+        //                     sh """
+        //                         # Create namespace
+        //                         kubectl create namespace ${NAMESPACE} --dry-run=client -o yaml | kubectl apply -f -
                                 
-                                # Apply RBAC
-                                kubectl apply -f k8s/rbac.yml
+        //                         # Apply RBAC
+        //                         kubectl apply -f k8s/rbac.yml
                                 
-                                # Apply deployment
-                                kubectl apply -f k8s/deployment.yml
+        //                         # Apply deployment
+        //                         kubectl apply -f k8s/deployment.yml
 
-                                kubectl apply -f k8s/service.yml
+        //                         kubectl apply -f k8s/service.yml
                                 
-                                # Wait for deployment to be ready
-                                echo "Waiting for deployment to be ready..."
-                                kubectl rollout status deployment/abctechnologies-dep -n ${NAMESPACE} --timeout=900s
+        //                         # Wait for deployment to be ready
+        //                         echo "Waiting for deployment to be ready..."
+        //                         kubectl rollout status deployment/abctechnologies-dep -n ${NAMESPACE} --timeout=900s
                                 
-                                # Verify deployment
-                                echo "Verifying deployment..."
-                                kubectl get deployment abctechnologies-dep -n ${NAMESPACE} -o wide
+        //                         # Verify deployment
+        //                         echo "Verifying deployment..."
+        //                         kubectl get deployment abctechnologies-dep -n ${NAMESPACE} -o wide
                                 
-                                # Check pods
-                                echo "Checking pod status..."
-                                kubectl get pods -n ${NAMESPACE} -l app=abc-tech-app -o wide
+        //                         # Check pods
+        //                         echo "Checking pod status..."
+        //                         kubectl get pods -n ${NAMESPACE} -l app=abc-tech-app -o wide
                                 
-                                # Get recent events
-                                echo "Recent events:"
-                                kubectl get events -n ${NAMESPACE} --sort-by=.metadata.creationTimestamp | tail -n 20
-                            """
-                        }
-                    } catch (Exception e) {
-                        // Get additional debugging information if deployment fails
-                        sh """
-                            kubectl describe pods -n ${NAMESPACE} -l app=abc-tech-app
-                            kubectl logs -n ${NAMESPACE} -l app=abc-tech-app --all-containers --tail=100
-                        """
-                        error "Deployment failed: ${e.message}"
-                    }
-                }
-            }
-        }
+        //                         # Get recent events
+        //                         echo "Recent events:"
+        //                         kubectl get events -n ${NAMESPACE} --sort-by=.metadata.creationTimestamp | tail -n 20
+        //                     """
+        //                 }
+        //             } catch (Exception e) {
+        //                 // Get additional debugging information if deployment fails
+        //                 sh """
+        //                     kubectl describe pods -n ${NAMESPACE} -l app=abc-tech-app
+        //                     kubectl logs -n ${NAMESPACE} -l app=abc-tech-app --all-containers --tail=100
+        //                 """
+        //                 error "Deployment failed: ${e.message}"
+        //             }
+        //         }
+        //     }
+        // }
     
-        stage('Verify LoadBalancer Service') {
-            steps {
-                script {
-                    sh '''
-                    echo "Waiting for LoadBalancer external IP..."
-                    kubectl get svc abc-tech-service -o wide --watch
-                    '''
-                }
-            }
-        }
+        // stage('Verify LoadBalancer Service') {
+        //     steps {
+        //         script {
+        //             sh '''
+        //             echo "Waiting for LoadBalancer external IP..."
+        //             kubectl get svc abc-tech-service -o wide --watch
+        //             '''
+        //         }
+        //     }
+        // }
     
     
     }

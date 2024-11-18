@@ -26,23 +26,22 @@ pipeline {
                 bat 'mvn clean compile test package'
             }
         }
-    }
+    
 
-    post {
-        success {
-            
-            // Steps to be executed after a successful build
-            echo 'Build successful!'
+        post {
+            success {
+                // Steps to be executed after a successful build
+                echo 'Build successful!'
+            }
+            failure {
+                // Add steps to be executed if the build fails
+                echo 'Build failed!'
+            }
         }
-        failure {
-            
-            // Add steps to be executed if the build fails
-            echo 'Build failed!'
-        }
-    }
 
 
         /////////////////////////////////////////
+
         stage('Build Docker Image') {
             steps {
                 script {
@@ -137,8 +136,8 @@ pipeline {
         //     }
         // }
     
-    
-    }
+    }  
+
 }
 
 

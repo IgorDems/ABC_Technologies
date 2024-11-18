@@ -23,6 +23,7 @@ RUN apt-get update && \
 ENV CATALINA_HOME=/opt/tomcat
 ENV PATH=$CATALINA_HOME/bin:$PATH
 
+COPY **/ABCtechnologies-1.0.war /opt/tomcat/webapps/
 # Expose the default Tomcat port
 EXPOSE 8080
 

@@ -11,7 +11,59 @@ pipeline {
                
     }
     
+        environment {
+        DOCKERHUB_CREDENTIALS = credentials('dockerhub_credentials')
+        DOCKER_REGISTRY = 'docker.io'
+        NAMESPACE = 'abc-tech'
+        APP_NAME = 'abctechnologies'
+        JAVA_HOME = '/usr/lib/jvm/jdk-21-oracle-x64'
+        PATH = "$JAVA_HOME/bin:/usr/share/maven/bin:${env.PATH}"
+        MAVEN_HOME = '/usr/share/maven'
+        MAVEN_OPTS = '-Dmaven.repo.local=/var/jenkins-agent/.m2/repository'
+    }
+    
     stages {
+
+        stage('Checkout') {
+            steps {
+                checkout scm
+            }
+        }
+
+        stage('Build') {
+            steps {
+                script {
+                    try {
+                        // Print environment info for debugging
+                        sh '''
+                            echo "Java version:"
+                            java -version
+                            echo "Maven version:"
+                            mvn -version
+                            echo "Current directory:"
+                            pwd
+                            echo "Directory contents:"
+                            ls -la
+                        '''
+                        
+                        // Clean and build with explicit Maven path
+                        sh '''
+                            /usr/bin/mvn clean install \
+                                -Dmaven.test.skip=true \
+                                -Dmaven.repo.local=/var/jenkins-agent/.m2/repository
+                        '''
+                    } catch (Exception e) {
+                        echo "Maven build failed: ${e.getMessage()}"
+                        throw e
+                    }
+                }
+            }
+            post {
+                success {
+                    archiveArtifacts artifacts: '**/target/*.war', fingerprint: true
+                }
+            }
+        }
         stage('Build Docker Image') {
             steps {
                 script {
@@ -93,35 +145,7 @@ pipeline {
                     }
                 }
             }
-        }
-    
-
-
-
-//         stage('Deploy on Kubernetes') {
-//             steps {
-//                 script {
-//                     // kubectl is installed and configured
-//                     sh '''
-//                  kubectl apply -f /var/jenkins-agent/workspace/ABC_AnsibleK8s/k8s/deployment.yml \
-//                         --certificate-authority=/var/jenkins-agent/kubernetes-ca.crt \
-//                         --server=https://10.0.0.193:6443
-//                     '''
-//         }
-//     }
-// }
-
-
-        
-        // stage('Deploy on Kubernetes') {
-        //     steps {
-        //         script {
-        //             // kubectl is installed and configured
-        //             sh 'kubectl apply -f /var/jenkins-agent/workspace/ABC_AnsibleK8s/k8s/deployment.yml'
-        //         }
-        //     }
-        // }
-    
+        }    
     }
 }
 

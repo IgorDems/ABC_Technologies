@@ -3,12 +3,9 @@ pipeline {
         label 'agent193'
     }
     
-    tools {
-        maven 'maven'
-    }
-    
     environment {
         DOCKER_REGISTRY = 'docker.io'
+        TOMCAT_CREDENTIALS = credentials('tomcat-credentials') // Add this credential in Jenkins
     }
     
     stages {
@@ -33,10 +30,7 @@ pipeline {
         stage('Stop and Remove Docker Containers') {
             steps {
                 script {
-                    // Stop all running Docker containers
                     sh 'docker stop $(docker ps -q) || true'
-                    
-                    // Remove all stopped Docker containers
                     sh 'docker rm $(docker ps -aq) || true'
                 }
             }
@@ -48,38 +42,60 @@ pipeline {
                     // Delete all unused Docker images
                     sh 'docker image prune -a --force'
 
+                    // Create tomcat-users.xml file
+                    writeFile file: 'tomcat-users.xml', text: """<?xml version="1.0" encoding="UTF-8"?>
+<tomcat-users xmlns="http://tomcat.apache.org/xml"
+              xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+              xsi:schemaLocation="http://tomcat.apache.org/xml tomcat-users.xsd"
+              version="1.0">
+    <role rolename="manager-gui"/>
+    <role rolename="manager-script"/>
+    <role rolename="manager-jmx"/>
+    <role rolename="manager-status"/>
+    <role rolename="admin-gui"/>
+    <user username="${TOMCAT_CREDENTIALS_USR}" 
+          password="${TOMCAT_CREDENTIALS_PSW}" 
+          roles="manager-gui,manager-script,manager-jmx,manager-status,admin-gui"/>
+</tomcat-users>"""
+
                     // Build Docker image
                     def dockerImage = docker.build('abctechnologies', '-f Dockerfile .')
 
                     // Authenticate with Docker Hub
                     withCredentials([usernamePassword(credentialsId: 'dockerhub_credentials', usernameVariable: 'DOCKER_USERNAME', passwordVariable: 'DOCKER_PASSWORD')]) {
                         sh "docker login -u $DOCKER_USERNAME -p $DOCKER_PASSWORD"
-
-                        // Tag Docker image
                         sh "docker tag abctechnologies $DOCKER_USERNAME/abctechnologies"
-
-                        // Push Docker image to DockerHub
                         sh "docker push $DOCKER_USERNAME/abctechnologies"
-                        
-                        // Echo success message for Docker image build and upload
                         echo "Successfully built and uploaded to DockerHub"
-                        
-                        // Pull Docker image from DockerHub
                         sh "docker pull $DOCKER_USERNAME/abctechnologies"
                     }       
 
-                    // Echo success message for Docker image pull
                     echo "Successfully pulled Docker image from DockerHub"
                     
-                    // Start Docker container
-                    def dockerContainer = dockerImage.run('-d --name abctechnologies-container -p 8080:8080')
+                    // Start Docker container with Tomcat configuration
+                    def dockerContainer = dockerImage.run("""
+                        -d \
+                        --name abctechnologies-container \
+                        -p 8080:8080 \
+                        -e TOMCAT_USERNAME=${TOMCAT_CREDENTIALS_USR} \
+                        -e TOMCAT_PASSWORD=${TOMCAT_CREDENTIALS_PSW}
+                    """)
 
-                    // Get container ID
                     def containerId = dockerContainer.id
+                    
+                    // Wait for Tomcat to start
+                    sh "sleep 30"
 
-                    // Print container status and IP
+                    // Verify Tomcat is running
                     sh "docker inspect --format='{{.State.Status}}' $containerId"
                     sh "docker inspect --format='{{.NetworkSettings.IPAddress}}' $containerId"
+                    
+                    // Test Tomcat Manager access
+                    sh """
+                        curl --fail \
+                        -u ${TOMCAT_CREDENTIALS_USR}:${TOMCAT_CREDENTIALS_PSW} \
+                        http://localhost:8080/manager/html || true
+                    """
                 }
             }
         }
@@ -87,14 +103,13 @@ pipeline {
     
     post {
         always {
-            // Post-build Maven goals
-            sh 'mvn clean install site'
+            cleanWs()
         }
         success {
-            echo 'Post-build Maven goals executed successfully'
+            echo 'Tomcat configuration and deployment successful'
         }
         failure {
-            echo 'Post-build Maven goals failed'
+            echo 'Tomcat configuration or deployment failed'
         }
     }
 }

@@ -37,9 +37,19 @@ RUN echo '<?xml version="1.0" encoding="UTF-8"?>\n\
     <user username="admin" password="admin_password" roles="manager-gui,manager-script,manager-jmx,manager-status,admin-gui"/>\n\
 </tomcat-users>' > /opt/tomcat/conf/tomcat-users.xml
 
-# Configure context.xml files to allow remote access
-RUN sed -i 's/<Valve className="org.apache.catalina.valves.RemoteAddrValve".*/>/<Valve className="org.apache.catalina.valves.RemoteAddrValve" allow="^.*$" \/>/' /opt/tomcat/webapps/manager/META-INF/context.xml && \
-    sed -i 's/<Valve className="org.apache.catalina.valves.RemoteAddrValve".*/>/<Valve className="org.apache.catalina.valves.RemoteAddrValve" allow="^.*$" \/>/' /opt/tomcat/webapps/host-manager/META-INF/context.xml
+# Create and configure context.xml files for manager and host-manager
+RUN echo '<?xml version="1.0" encoding="UTF-8"?>\n\
+<Context antiResourceLocking="false" privileged="true" >\n\
+  <Valve className="org.apache.catalina.valves.RemoteAddrValve" allow="^.*$" />\n\
+</Context>' > /opt/tomcat/webapps/manager/META-INF/context.xml && \
+    echo '<?xml version="1.0" encoding="UTF-8"?>\n\
+<Context antiResourceLocking="false" privileged="true" >\n\
+  <Valve className="org.apache.catalina.valves.RemoteAddrValve" allow="^.*$" />\n\
+</Context>' > /opt/tomcat/webapps/host-manager/META-INF/context.xml
+
+# Ensure the directories exist for manager and host-manager
+RUN mkdir -p /opt/tomcat/webapps/manager/META-INF \
+    /opt/tomcat/webapps/host-manager/META-INF
 
 COPY **/ABCtechnologies-1.0.war /opt/tomcat/webapps/
 

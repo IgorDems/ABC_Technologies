@@ -5,7 +5,7 @@ pipeline {
     
     environment {
         DOCKER_REGISTRY = 'docker.io'
-        TOMCAT_CREDENTIALS = credentials('tomcat-credentials')
+        // TOMCAT_CREDENTIALS = credentials('tomcat-credentials')
     }
     
     stages {

@@ -64,11 +64,12 @@ pipeline {
                         sh """
                             docker run -d \
                                 --name abctechnologies-container \
-                                -p 8080:8080 \
-                                -e TOMCAT_USERNAME=${TOMCAT_CREDENTIALS_USR} \
-                                -e TOMCAT_PASSWORD=${TOMCAT_CREDENTIALS_PSW} \
-                                ${DOCKER_USERNAME}/abctechnologies
-                        """
+                                -p 8080:8080 
+                        """        
+                                // -e TOMCAT_USERNAME=${TOMCAT_CREDENTIALS_USR} \
+                                // -e TOMCAT_PASSWORD=${TOMCAT_CREDENTIALS_PSW} \
+                                // ${DOCKER_USERNAME}/abctechnologies
+                        
                         
                         // Wait for Tomcat to start
                         sh 'sleep 30'
@@ -83,14 +84,14 @@ pipeline {
                         """
                         
                         // Test Tomcat Manager access
-                        withCredentials([usernamePassword(credentialsId: 'tomcat-credentials', 
-                                                        usernameVariable: 'TOMCAT_USER', 
-                                                        passwordVariable: 'TOMCAT_PASSWORD')]) {
-                            sh """
-                                curl --fail --silent \
-                                    --user ${TOMCAT_USER}:${TOMCAT_PASSWORD} \
-                                    http://localhost:8080/manager/html || true
-                            """
+                        // withCredentials([usernamePassword(credentialsId: 'tomcat-credentials', 
+                        //                                 usernameVariable: 'TOMCAT_USER', 
+                        //                                 passwordVariable: 'TOMCAT_PASSWORD')]) {
+                            // sh """
+                            //     curl --fail --silent \
+                            //         --user ${TOMCAT_USER}:${TOMCAT_PASSWORD} \
+                            //         http://localhost:8080/manager/html || true
+                            // """
                         }
                     }
                 }

@@ -1,12 +1,5 @@
 pipeline {
-    agent {
-        label 'agent193'
-    }
-    
-    environment {
-        DOCKER_REGISTRY = 'docker.io'
-        // TOMCAT_CREDENTIALS = credentials('tomcat-credentials')
-    }
+    agent any
     
     stages {
         stage('Compile') {
@@ -30,8 +23,10 @@ pipeline {
         stage('Stop and Remove Docker Containers') {
             steps {
                 script {
-                    sh 'docker stop $(docker ps -q) || true'
-                    sh 'docker rm $(docker ps -aq) || true'
+                    sh '''
+                        docker ps -q | xargs -r docker stop
+                        docker ps -aq | xargs -r docker rm
+                    '''
                 }
             }
         }
@@ -39,60 +34,33 @@ pipeline {
         stage('Docker Build') {
             steps {
                 script {
-                    // Delete all unused Docker images
+                    // Clean up old images
                     sh 'docker image prune -a --force'
-
-                    // Build Docker image
-                    def dockerImage = docker.build('abctechnologies', '-f Dockerfile .')
-
-                    // Authenticate with Docker Hub
-                    withCredentials([usernamePassword(credentialsId: 'dockerhub_credentials', 
-                                                    usernameVariable: 'DOCKER_USERNAME', 
-                                                    passwordVariable: 'DOCKER_PASSWORD')]) {
-                        sh """
-                            docker login -u ${DOCKER_USERNAME} -p ${DOCKER_PASSWORD}
-                            docker tag abctechnologies ${DOCKER_USERNAME}/abctechnologies
-                            docker push ${DOCKER_USERNAME}/abctechnologies
-                        """
-                        echo "Successfully built and uploaded to DockerHub"
+                    
+                    // Build new image
+                    docker.build("abctechnologies")
+                    
+                    withCredentials([usernamePassword(credentialsId: 'docker-hub-credentials', usernameVariable: 'DOCKER_USERNAME', passwordVariable: 'DOCKER_PASSWORD')]) {
+                        // Login to DockerHub
+                        sh 'docker login -u ${DOCKER_USERNAME} -p ${DOCKER_PASSWORD}'
                         
-                        // Pull the image
-                        sh "docker pull ${DOCKER_USERNAME}/abctechnologies"
-                        echo "Successfully pulled Docker image from DockerHub"
+                        // Tag and push the image
+                        sh 'docker tag abctechnologies demsdocker/abctechnologies'
+                        sh 'docker push demsdocker/abctechnologies'
+                        echo 'Successfully built and uploaded to DockerHub'
                         
-                        // Run the container with proper arguments
-                        sh """
+                        // Pull and run the image
+                        sh 'docker pull demsdocker/abctechnologies'
+                        echo 'Successfully pulled Docker image from DockerHub'
+                        
+                        // Run the container with proper image name and Tomcat configuration
+                        sh '''
                             docker run -d \
                                 --name abctechnologies-container \
-                                -p 8080:8080 
-                        """        
-                                // -e TOMCAT_USERNAME=${TOMCAT_CREDENTIALS_USR} \
-                                // -e TOMCAT_PASSWORD=${TOMCAT_CREDENTIALS_PSW} \
-                                // ${DOCKER_USERNAME}/abctechnologies
-                        
-                        
-                        // Wait for Tomcat to start
-                        sh 'sleep 30'
-                        
-                        // Get container ID of the newly created container
-                        def containerId = sh(script: 'docker ps -q -l', returnStdout: true).trim()
-                        
-                        // Verify container is running
-                        sh """
-                            docker inspect --format='{{.State.Status}}' ${containerId}
-                            docker inspect --format='{{.NetworkSettings.IPAddress}}' ${containerId}
-                        """
-                        
-                        // Test Tomcat Manager access
-                        // withCredentials([usernamePassword(credentialsId: 'tomcat-credentials', 
-                        //                                 usernameVariable: 'TOMCAT_USER', 
-                        //                                 passwordVariable: 'TOMCAT_PASSWORD')]) {
-                            // sh """
-                            //     curl --fail --silent \
-                            //         --user ${TOMCAT_USER}:${TOMCAT_PASSWORD} \
-                            //         http://localhost:8080/manager/html || true
-                            // """
-                        // }
+                                -p 8080:8080 \
+                                demsdocker/abctechnologies \
+                                /opt/tomcat/bin/catalina.sh run
+                        '''
                     }
                 }
             }
@@ -102,9 +70,6 @@ pipeline {
     post {
         always {
             cleanWs()
-        }
-        success {
-            echo 'Tomcat configuration and deployment successful'
         }
         failure {
             echo 'Tomcat configuration or deployment failed'

@@ -24,18 +24,18 @@ ENV CATALINA_HOME=/opt/tomcat
 ENV PATH=$CATALINA_HOME/bin:$PATH
 
 # Configure Tomcat users and roles
-RUN echo '<?xml version="1.0" encoding="UTF-8"?>\n\
-<tomcat-users xmlns="http://tomcat.apache.org/xml"\n\
-              xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"\n\
-              xsi:schemaLocation="http://tomcat.apache.org/xml tomcat-users.xsd"\n\
-              version="1.0">\n\
-    <role rolename="manager-gui"/>\n\
-    <role rolename="manager-script"/>\n\
-    <role rolename="manager-jmx"/>\n\
-    <role rolename="manager-status"/>\n\
-    <role rolename="admin-gui"/>\n\
-    <user username="admin" password="admin_password" roles="manager-gui,manager-script,manager-jmx,manager-status,admin-gui"/>\n\
-</tomcat-users>' > /opt/tomcat/conf/tomcat-users.xml
+# RUN echo '<?xml version="1.0" encoding="UTF-8"?>\n\
+# <tomcat-users xmlns="http://tomcat.apache.org/xml"\n\
+#               xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"\n\
+#               xsi:schemaLocation="http://tomcat.apache.org/xml tomcat-users.xsd"\n\
+#               version="1.0">\n\
+#     <role rolename="manager-gui"/>\n\
+#     <role rolename="manager-script"/>\n\
+#     <role rolename="manager-jmx"/>\n\
+#     <role rolename="manager-status"/>\n\
+#     <role rolename="admin-gui"/>\n\
+#     <user username="admin" password="admin_password" roles="manager-gui,manager-script,manager-jmx,manager-status,admin-gui"/>\n\
+# </tomcat-users>' > /opt/tomcat/conf/tomcat-users.xml
 
 # Create and configure context.xml files for manager and host-manager
 RUN echo '<?xml version="1.0" encoding="UTF-8"?>\n\

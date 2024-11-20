@@ -92,7 +92,7 @@ pipeline {
                             //         --user ${TOMCAT_USER}:${TOMCAT_PASSWORD} \
                             //         http://localhost:8080/manager/html || true
                             // """
-                        }
+                        // }
                     }
                 }
             }

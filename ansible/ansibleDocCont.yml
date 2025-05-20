@@ -1,7 +1,12 @@
 - hosts: localhost
   become: yes
+  vars:
+    ansible_python_interpreter: /usr/bin/python3.10
+  connection: local
   tasks:
     - name: start a container
+      debug:
+        msg: "Interpreter set to /usr/bin/python3.10"
       community.docker.docker_container:
         name: abc-application
         image: demsdocker/abctechnologies

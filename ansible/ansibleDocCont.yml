@@ -3,10 +3,9 @@
   vars:
     ansible_python_interpreter: /usr/bin/python3.10
   connection: local
+
   tasks:
-    - name: start a container
-      debug:
-        msg: "Interpreter set to /usr/bin/python3.10"
+    - name: Start a container
       community.docker.docker_container:
         name: abc-application
         image: demsdocker/abctechnologies
@@ -15,5 +14,6 @@
           - "1234:8080"
       register: out
 
-    - debug:
+    - name: Show container start output
+      debug:
         var: out

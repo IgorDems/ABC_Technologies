@@ -9,15 +9,16 @@ RUN mkdir -p /opt/tomcat
 
 # Install required packages and set up Tomcat
 RUN apt-get update && \
-    apt-get install -y wget openjdk-17-jdk curl && \
-    # Get the latest Tomcat 9 version dynamically
-    TOMCAT_VERSION=$(curl -s https://downloads.apache.org/tomcat/tomcat-9/ | grep -o 'v9\.0\.[0-9]*' | sort -V | tail -n 1) && \
-    echo "Latest Tomcat version: ${TOMCAT_VERSION}" && \
-    wget "https://downloads.apache.org/tomcat/tomcat-9/${TOMCAT_VERSION}/bin/apache-tomcat-${TOMCAT_VERSION#v}.tar.gz" && \
-    tar -xzvf apache-tomcat-*.tar.gz -C /opt/tomcat --strip-components=1 && \
-    rm -rf apache-tomcat-*.tar.gz && \
-    # Make the scripts executable
-    chmod +x /opt/tomcat/bin/*.sh
+    DEBIAN_FRONTEND=noninteractive apt-get install -y wget openjdk-17-jdk curl ca-certificates gnupg && \
+    mkdir -p /opt/tomcat && \
+    bash -c ' \
+        TOMCAT_VERSION=$(curl -s https://downloads.apache.org/tomcat/tomcat-9/ | grep -oP "v9\.0\.\d+" | sort -V | tail -n1) && \
+        echo "Latest Tomcat version: $TOMCAT_VERSION" && \
+        wget "https://downloads.apache.org/tomcat/tomcat-9/$TOMCAT_VERSION/bin/apache-tomcat-${TOMCAT_VERSION#v}.tar.gz" && \
+        tar -xzvf apache-tomcat-*.tar.gz -C /opt/tomcat --strip-components=1 && \
+        rm -rf apache-tomcat-*.tar.gz && \
+        chmod +x /opt/tomcat/bin/*.sh \
+    '
 
 # Set environment variables
 ENV CATALINA_HOME=/opt/tomcat

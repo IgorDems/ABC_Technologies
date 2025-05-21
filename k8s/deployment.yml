@@ -1,58 +1,58 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-    name: abctechnologies-dep
-    namespace: abc-tech
-    labels:
-        app: abc-tech-app
+  name: abctechnologies-dep
+  namespace: abc-tech
+  labels:
+    app: abc-tech-app
 spec:
-    replicas: 2
-    minReadySeconds: 20  # Reduced from 45
-    progressDeadlineSeconds: 600  # Add this line
-    strategy:
-        type: RollingUpdate
-        rollingUpdate:
-            maxUnavailable: 0
-            maxSurge: 1  # Reduced from 2
-    selector:
-        matchLabels:
-            app: abc-tech-app
-    template:
-        metadata:
-            labels:
-                app: abc-tech-app
-        spec:
-            serviceAccountName: abc-tech-sa
-            tolerations:
-                - key: "node-role.kubernetes.io/control-plane"
-                  operator: "Exists"
-            containers:
-                - name: app
-                  image: demsdocker/abctechnologies:latest  # Add explicit tag
-                  imagePullPolicy: Always
-                  ports:
-                      - containerPort: 8080
-                        name: http
-                  livenessProbe:
-                    httpGet:
-                      path: /ABCtechnologies-1.0
-                      port: 8080
-                    initialDelaySeconds: 90  # Increased from 60
-                    periodSeconds: 20
-                    timeoutSeconds: 5  # Add this
-                    failureThreshold: 3  # Add this
-                  readinessProbe:
-                    httpGet:
-                      path: /ABCtechnologies-1.0
-                      port: 8080
-                    initialDelaySeconds: 45  # Increased from 30
-                    periodSeconds: 10
-                    timeoutSeconds: 5  # Add this
-                    failureThreshold: 3  # Add this
-                  resources:  # Add resource limits
-                    requests:
-                      memory: "512Mi"
-                      cpu: "250m"
-                    limits:
-                      memory: "1Gi"
-                      cpu: "500m"
+  replicas: 2
+  minReadySeconds: 20
+  progressDeadlineSeconds: 600
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxUnavailable: 0
+      maxSurge: 1
+  selector:
+    matchLabels:
+      app: abc-tech-app
+  template:
+    metadata:
+      labels:
+        app: abc-tech-app
+    spec:
+      serviceAccountName: abc-tech-sa
+      tolerations:
+      - key: node-role.kubernetes.io/control-plane
+        operator: Exists
+      containers:
+      - name: abc-tech-container
+        image: demsdocker/abctechnologies
+        imagePullPolicy: Always
+        ports:
+        - containerPort: 8080
+          name: http
+        livenessProbe:
+          httpGet:
+            path: /ABCtechnologies-1.0
+            port: 8080
+          initialDelaySeconds: 90
+          periodSeconds: 20
+          timeoutSeconds: 5
+          failureThreshold: 3
+        readinessProbe:
+          httpGet:
+            path: /ABCtechnologies-1.0
+            port: 8080
+          initialDelaySeconds: 45
+          periodSeconds: 10
+          timeoutSeconds: 5
+          failureThreshold: 3
+        resources:
+          requests:
+            memory: 512Mi
+            cpu: 250m
+          limits:
+            memory: 1Gi
+            cpu: 500m

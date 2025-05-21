@@ -1,7 +1,5 @@
 pipeline {
-    agent {
-        label 'agent193'
-    }
+    agent { label 'agent193' }
 
     environment {
         DOCKERHUB_CREDENTIALS = credentials('dockerhub_credentials')
@@ -16,25 +14,16 @@ pipeline {
 
     stages {
         stage('Checkout') {
-            steps {
-                checkout scm
-            }
+            steps { checkout scm }
         }
 
         stage('Build') {
             steps {
-                script {
-                    sh '''
-                        echo "Java version:"
-                        java -version
-                        echo "Maven version:"
-                        mvn -version
-                        echo "Working directory:"
-                        pwd
-                        ls -la
-                        /usr/bin/mvn clean install -Dmaven.test.skip=true -Dmaven.repo.local=$MAVEN_OPTS
-                    '''
-                }
+                sh '''
+                    echo "Java:" && java -version
+                    echo "Maven:" && mvn -version
+                    /usr/bin/mvn clean install -Dmaven.test.skip=true -Dmaven.repo.local=/var/jenkins-agent/.m2/repository
+                '''
             }
             post {
                 success {
@@ -46,36 +35,26 @@ pipeline {
         stage('Build Docker Image') {
             steps {
                 script {
-                    docker.build("${APP_NAME}", '-f Dockerfile .')
+                    docker.build("abctechnologies", "-f Dockerfile .")
                 }
             }
         }
 
         stage('Push Docker Image') {
             steps {
-                script {
-                    withCredentials([usernamePassword(credentialsId: 'dockerhub_credentials', usernameVariable: 'DOCKER_USERNAME', passwordVariable: 'DOCKER_PASSWORD')]) {
-                        sh '''
-                            docker login -u $DOCKER_USERNAME -p $DOCKER_PASSWORD
-                            docker tag ${APP_NAME} $DOCKER_USERNAME/${APP_NAME}
-                            docker push $DOCKER_USERNAME/${APP_NAME}
-                            echo "Docker image pushed to DockerHub"
-                        '''
-                    }
+                withCredentials([usernamePassword(credentialsId: 'dockerhub_credentials', usernameVariable: 'DOCKER_USERNAME', passwordVariable: 'DOCKER_PASSWORD')]) {
+                    sh '''
+                        docker login -u $DOCKER_USERNAME -p $DOCKER_PASSWORD
+                        docker tag abctechnologies $DOCKER_USERNAME/abctechnologies
+                        docker push $DOCKER_USERNAME/abctechnologies
+                    '''
                 }
             }
         }
 
-        stage('Start Container with Ansible') {
+        stage('Run Ansible to Start Container') {
             steps {
-                script {
-                    // Before using ansible, make sure Docker is clean and prerequisites are met
-                    sh '''
-                        docker stop abc-application || true
-                        docker rm abc-application || true
-                        ansible-playbook ansible/ansibleDocCont.yml --connection=local
-                    '''
-                }
+                sh 'ansible-playbook ansible/ansibleDocCont.yml --connection=local'
             }
         }
 
@@ -83,46 +62,28 @@ pipeline {
             steps {
                 script {
                     try {
-                        withKubeConfig(credentialsId: 'kubernetes-ca', serverUrl: 'https://10.0.0.193:6443') {
+                        withKubeConfig([
+                            credentialsId: 'kubernetes-ca',
+                            serverUrl: 'https://10.0.0.193:6443'
+                        ]) {
                             sh """
-                                kubectl create namespace ${NAMESPACE} --dry-run=client -o yaml | kubectl apply --validate=false -f -
-                                
+                                kubectl create namespace ${NAMESPACE} --dry-run=client -o yaml | kubectl apply -f -
                                 kubectl apply -f k8s/rbac.yml
                                 kubectl apply -f k8s/deployment.yml
                                 kubectl apply -f k8s/service.yml
-
-                                echo "Waiting for deployment rollout..."
                                 kubectl rollout status deployment/abctechnologies-dep -n ${NAMESPACE} --timeout=900s
-
-                                echo "Deployment status:"
-                                kubectl get deployment abctechnologies-dep -n ${NAMESPACE} -o wide
-
-                                echo "Pod status:"
-                                kubectl get pods -n ${NAMESPACE} -l app=abc-tech-app -o wide
-
-                                echo "Recent events:"
-                                kubectl get events -n ${NAMESPACE} --sort-by=.metadata.creationTimestamp | tail -n 20
+                                kubectl get deployment abctechnologies-dep -n ${NAMESPACE}
                             """
                         }
-                    } catch (Exception e) {
-                        echo "Error during Kubernetes deployment: ${e.getMessage()}"
-                        withKubeConfig(credentialsId: 'kubernetes-ca', serverUrl: 'https://10.0.0.193:6443') {
-                            sh '''
-                                echo "Debugging failed deployment..."
-                                kubectl describe pods -n ${NAMESPACE} -l app=abc-tech-app || true
-                                kubectl logs -n ${NAMESPACE} -l app=abc-tech-app --all-containers --tail=100 || true
-                            '''
-                        }
-                        error("Kubernetes deployment failed.")
+                    } catch (err) {
+                        sh """
+                            kubectl describe pods -n ${NAMESPACE} -l app=abc-tech-app || true
+                            kubectl logs -n ${NAMESPACE} -l app=abc-tech-app --all-containers --tail=100 || true
+                        """
+                        error("Deployment failed: ${err.getMessage()}")
                     }
                 }
             }
-        }
-    }
-
-    post {
-        always {
-            echo "Pipeline completed."
         }
     }
 }

@@ -3,9 +3,9 @@ pipeline {
 
   stages {
     stage('Test K8s Access') {
-      steps {
-        withKubeConfig([credentialsId: 'kubernetes-ca', serverUrl: 'https://10.0.0.193:6443']) {
-          sh 'kubectl get nodes'
+  steps {
+    withKubeConfig([credentialsId: 'jenkins-kubeconfig']) {
+      sh 'kubectl get nodes'
         }
       }
     }

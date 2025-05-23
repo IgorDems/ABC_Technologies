@@ -5,7 +5,10 @@ pipeline {
     stage('Test K8s Access') {
   steps {
     withKubeConfig([credentialsId: 'jenkins-kubeconfig']) {
-      sh 'kubectl get nodes'
+      sh  '''
+          kubectl get nodes
+          kubectl get pods -n abc-tech
+          '''
         }
       }
     }

@@ -2,7 +2,8 @@ pipeline {
   agent { label 'agent193' }
 
   stages {
-    steps {
+    stage('Kubernetes Configuration') {
+      steps {
         withCredentials([string(credentialsId: 'kube-server', variable: 'KUBE_SERVER'),
                          string(credentialsId: 'kube-ca-data', variable: 'KUBE_CA_DATA'),
                          string(credentialsId: 'kube-client-cert', variable: 'KUBE_CLIENT_CERT'),
@@ -31,14 +32,15 @@ users:
                 """
 
                 writeFile file: '/tmp/kubeconfig', text: kubeconfigContent
-
-                withKubeConfig(['/tmp/kubeconfig']) {
-                    sh 'kubectl get nodes'
-                    // sh 'kubectl apply -f k8s/deployment.yaml'
-                    // sh 'kubectl apply -f k8s/service.yaml'
-                }
             }
         }
+
+        withKubeConfig(['/tmp/kubeconfig']) {
+            sh 'kubectl get nodes'
+            // sh 'kubectl apply -f k8s/deployment.yaml'
+            // sh 'kubectl apply -f k8s/service.yaml'
+        }
+      }
     }
   }
 }

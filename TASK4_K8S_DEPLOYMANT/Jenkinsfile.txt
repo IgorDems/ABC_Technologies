@@ -35,8 +35,8 @@ EOF
                     '''
                     
                     withCredentials([
-                    string(credentialsId: 'kubeconfig', variable: 'KUBE_CONF')
-                ]) {
+                     file(credentialsId: 'kubeconfig', variable: 'KUBECONFIG_FILE')])
+                 {
                         sh 'kubectl get nodes'
                         sh 'kubectl apply -f k8s/deployment.yaml'
                         sh 'kubectl apply -f k8s/service.yaml'

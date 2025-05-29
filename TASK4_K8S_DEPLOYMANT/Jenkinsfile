@@ -9,25 +9,35 @@ pipeline {
                     string(credentialsId: 'kube-client-cert', variable: 'KUBE_CLIENT_CERT'),
                     string(credentialsId: 'kube-client-key', variable: 'KUBE_CLIENT_KEY')
                 ]) {
-                    script {
-                        // Read the kubeconfig template from Jenkins credentials
-                        def kubeconfigTemplate = libraryResource 'kubeconfig-template'
-                        
-                        // Alternative: Read using configFileProvider
-                        configFileProvider([configFile(fileId: 'kubeconfig-template', targetLocation: '/tmp/kubeconfig-template.yml')]) {
-                            // Substitute variables and create final kubeconfig
-                            sh '''
-                                envsubst < /tmp/kubeconfig-template.yml > /tmp/kubeconfig
-                                chmod 600 /tmp/kubeconfig
-                            '''
-                            
-                            // Use the kubeconfig
-                            withEnv(["KUBECONFIG=/tmp/kubeconfig"]) {
-                                sh 'kubectl get nodes'
-                                sh 'kubectl apply -f k8s/deployment.yaml'
-                                sh 'kubectl apply -f k8s/service.yaml'
-                            }
-                        }
+                    sh '''
+                        cat > /tmp/kubeconfig << EOF
+apiVersion: v1
+clusters:
+- cluster:
+    certificate-authority-data: $KUBE_CA_DATA
+    server: $KUBE_SERVER
+  name: kubernetes
+contexts:
+- context:
+    cluster: kubernetes
+    user: kubernetes-admin
+  name: kubernetes-admin@kubernetes
+current-context: kubernetes-admin@kubernetes
+kind: Config
+preferences: {}
+users:
+- name: kubernetes-admin
+  user:
+    client-certificate-data: $KUBE_CLIENT_CERT
+    client-key-data: $KUBE_CLIENT_KEY
+EOF
+                        chmod 600 /tmp/kubeconfig
+                    '''
+                    
+                    withEnv(["KUBECONFIG=/tmp/kubeconfig"]) {
+                        sh 'kubectl get nodes'
+                        sh 'kubectl apply -f k8s/deployment.yaml'
+                        sh 'kubectl apply -f k8s/service.yaml'
                     }
                 }
             }

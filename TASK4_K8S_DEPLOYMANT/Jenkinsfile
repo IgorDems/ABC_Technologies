@@ -3,7 +3,7 @@ pipeline {
      stages {
         stage('Deploy to K8s') {
             steps {
-                withKubeConfig([credentialsId: 'k8s-config', serverUrl: 'https://10.0.0.193:6443']) {
+                withKubeConfig([credentialsId: 'certificate_file', serverUrl: 'https://10.0.0.193:6443']) {
                     sh 'kubectl get pods'
                     // Add your kubectl commands here
                 }

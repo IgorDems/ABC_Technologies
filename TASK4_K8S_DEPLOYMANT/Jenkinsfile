@@ -1,46 +1,11 @@
 pipeline {
     agent { label 'agent193' }
-    stages {
-        stage('Kubernetes Configuration') {
+     stages {
+        stage('Deploy to K8s') {
             steps {
-                withCredentials([
-                    string(credentialsId: 'kube-server', variable: 'KUBE_SERVER'),
-                    string(credentialsId: 'kube-ca-data', variable: 'KUBE_CA_DATA'),
-                    string(credentialsId: 'kube-client-cert', variable: 'KUBE_CLIENT_CERT'),
-                    string(credentialsId: 'kube-client-key', variable: 'KUBE_CLIENT_KEY')
-                ]) {
-                    sh '''
-                        cat > /tmp/kubeconfig << EOF
-apiVersion: v1
-clusters:
-- cluster:
-    certificate-authority-data: $KUBE_CA_DATA
-    server: $KUBE_SERVER
-  name: kubernetes
-contexts:
-- context:
-    cluster: kubernetes
-    user: kubernetes-admin
-  name: kubernetes-admin@kubernetes
-current-context: kubernetes-admin@kubernetes
-kind: Config
-preferences: {}
-users:
-- name: kubernetes-admin
-  user:
-    client-certificate-data: $KUBE_CLIENT_CERT
-    client-key-data: $KUBE_CLIENT_KEY
-EOF
-                        chmod 600 /tmp/kubeconfig
-                    '''
-                    
-                    withCredentials([
-                    string(credentialsId: 'kubeconfig', variable: 'KUBE_CONF')
-                ]) {
-                        sh 'kubectl get nodes'
-                        sh 'kubectl apply -f k8s/deployment.yaml'
-                        sh 'kubectl apply -f k8s/service.yaml'
-                    }
+                withKubeConfig([credentialsId: 'k8s-config', serverUrl: 'https://10.0.0.193:6443']) {
+                    sh 'kubectl get pods'
+                    // Add your kubectl commands here
                 }
             }
         }

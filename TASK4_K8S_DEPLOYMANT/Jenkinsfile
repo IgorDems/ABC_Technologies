@@ -4,15 +4,8 @@ pipeline {
     stages {
         stage('Deploy to K8s') {
             steps {
-                // Git checkout using declarative 'git' step
-                // git(
-                //     branch: 'fix4docker',
-                //     credentialsId: 'GITHUB',
-                //     url: 'https://github.com/IgorDems/ABC_Technologies.git'
-                // )
-
                 // Use kubeconfig to interact with cluster
-                withKubeConfig([credentialsId: 'certificate_file', serverUrl: 'https://10.0.0.193:6443']) {
+                withKubeConfig([credentialsId: 'certificate_file']) {
                     sh 'kubectl get pods'
                     // Add your kubectl commands here
                 }

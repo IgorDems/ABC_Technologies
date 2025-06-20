@@ -5,7 +5,7 @@ pipeline {
         stage('Deploy to K8s') {
             steps {
                 // Use kubeconfig to interact with cluster
-                withKubeConfig([credentialsId: 'certificate_file']) {
+                withKubeConfig([credentialsId: 'kube-server']) {
                     sh 'kubectl get pods'
                     // Add your kubectl commands here
                 }

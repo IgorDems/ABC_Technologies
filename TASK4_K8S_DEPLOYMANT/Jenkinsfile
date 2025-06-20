@@ -104,7 +104,7 @@ users:
             steps {
                 script {
                     try {
-                        withKubeConfig([credentialsId: 'certificate_file'])  {
+                        withKubeConfig([credentialsId: 'kube-server'])  {
                             sh """
                                 kubectl create namespace ${NAMESPACE} --dry-run=client -o yaml | kubectl apply -f -
                                 kubectl apply -f k8s/rbac.yml

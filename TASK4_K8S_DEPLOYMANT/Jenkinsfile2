@@ -1,0 +1,15 @@
+pipeline {
+    agent { label 'agent193' }
+
+    stages {
+        stage('Deploy to K8s') {
+            steps {
+                // Use kubeconfig to interact with cluster
+                withKubeConfig([credentialsId: 'certificate_file']) {
+                    sh 'kubectl get pods'
+                    // Add your kubectl commands here
+                }
+            }
+        }
+    }
+}

@@ -1,7 +1,7 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: abctechnologies-dep
+  name: abc-tech-deployment
   namespace: abc-tech
   labels:
     app: abc-tech-app

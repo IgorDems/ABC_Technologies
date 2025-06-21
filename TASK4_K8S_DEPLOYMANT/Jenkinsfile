@@ -67,6 +67,7 @@ stage('Deploy to Kubernetes') {
                     sh """
                         kubectl get nodes
                         kubectl create namespace ${NAMESPACE} --dry-run=client -o yaml | kubectl apply -f -
+                        kubectl create namespace metallb-system --dry-run=client -o yaml | kubectl apply -f -
                         kubectl apply -f k8s/rbac.yml
                         kubectl apply -f k8s/deployment.yml
                         kubectl apply -f k8s/service.yml

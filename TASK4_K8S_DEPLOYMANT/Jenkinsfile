@@ -58,14 +58,19 @@ pipeline {
             }
         }
 
-        stage('Kubernetes Configuration') {
-      steps {
-        withCredentials([string(credentialsId: 'kube-server', variable: 'KUBE_SERVER'),
-                         string(credentialsId: 'kube-ca-data', variable: 'KUBE_CA_DATA'),
-                         string(credentialsId: 'kube-client-cert', variable: 'KUBE_CLIENT_CERT'),
-                         string(credentialsId: 'kube-client-key', variable: 'KUBE_CLIENT_KEY')]) {
-            script {
-                def kubeconfigContent = """
+        stage('Deploy to Kubernetes') {
+            steps {
+                script {
+                    try {
+                        // Method 1: Using kubeconfig file approach
+                        withCredentials([
+                            string(credentialsId: 'kube-server', variable: 'KUBE_SERVER'),
+                            string(credentialsId: 'kube-ca-data', variable: 'KUBE_CA_DATA'),
+                            string(credentialsId: 'kube-client-cert', variable: 'KUBE_CLIENT_CERT'),
+                            string(credentialsId: 'kube-client-key', variable: 'KUBE_CLIENT_KEY')
+                        ]) {
+                            // Create kubeconfig file
+                            def kubeconfigContent = """
 apiVersion: v1
 clusters:
 - cluster:
@@ -85,34 +90,21 @@ users:
   user:
     client-certificate-data: ${env.KUBE_CLIENT_CERT}
     client-key-data: ${env.KUBE_CLIENT_KEY}
-                """
-
-                writeFile file: '/tmp/kubeconfig', text: kubeconfigContent
-            }
-        }
-
-        withKubeConfig(['/tmp/kubeconfig']) {
-            sh 'kubectl get nodes'
-            sh 'kubectl apply -f k8s/deployment.yaml'
-            sh 'kubectl apply -f k8s/service.yaml'
-        }
-      }
-    }
-
-
-        stage('Deploy to Kubernetes') {
-            steps {
-                script {
-                    try {
-                        withKubeConfig([credentialsId: 'kube-server'])  {
-                            sh """
-                                kubectl create namespace ${NAMESPACE} --dry-run=client -o yaml | kubectl apply -f -
-                                kubectl apply -f k8s/rbac.yml
-                                kubectl apply -f k8s/deployment.yml
-                                kubectl apply -f k8s/service.yml
-                                kubectl rollout status deployment/abctechnologies-dep -n ${NAMESPACE} --timeout=900s
-                                kubectl get deployment abctechnologies-dep -n ${NAMESPACE}
-                            """
+"""
+                            writeFile file: '/tmp/kubeconfig', text: kubeconfigContent
+                            
+                            // Use the kubeconfig file with correct syntax
+                            withKubeConfig([kubeconfigFile: '/tmp/kubeconfig']) {
+                                sh """
+                                    kubectl get nodes
+                                    kubectl create namespace ${NAMESPACE} --dry-run=client -o yaml | kubectl apply -f -
+                                    kubectl apply -f k8s/rbac.yml
+                                    kubectl apply -f k8s/deployment.yml
+                                    kubectl apply -f k8s/service.yml
+                                    kubectl rollout status deployment/abctechnologies-dep -n ${NAMESPACE} --timeout=900s
+                                    kubectl get deployment abctechnologies-dep -n ${NAMESPACE}
+                                """
+                            }
                         }
                     } catch (err) {
                         sh """

@@ -62,3 +62,9 @@ subjects:
 - kind: ServiceAccount
   name: metallb-speaker
   namespace: metallb-system
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: abc-tech-sa
+  namespace: abc-tech

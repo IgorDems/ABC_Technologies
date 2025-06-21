@@ -93,8 +93,8 @@ users:
 
         withKubeConfig(['/tmp/kubeconfig']) {
             sh 'kubectl get nodes'
-            // sh 'kubectl apply -f k8s/deployment.yaml'
-            // sh 'kubectl apply -f k8s/service.yaml'
+            sh 'kubectl apply -f k8s/deployment.yaml'
+            sh 'kubectl apply -f k8s/service.yaml'
         }
       }
     }

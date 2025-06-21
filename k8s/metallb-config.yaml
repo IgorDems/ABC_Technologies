@@ -1,17 +1,15 @@
 apiVersion: metallb.io/v1beta1
 kind: IPAddressPool
 metadata:
-  name: default-pool
+  name: my-ip-pool
   namespace: metallb-system
 spec:
   addresses:
-  - 10.0.0.50-10.0.0.70
+  - 192.168.1.240-192.168.1.250  # Pick a free range from your LAN
 ---
 apiVersion: metallb.io/v1beta1
 kind: L2Advertisement
 metadata:
-  name: default
+  name: l2-advert
   namespace: metallb-system
-spec:
-  ipAddressPools:
-  - default-pool
+spec: {}

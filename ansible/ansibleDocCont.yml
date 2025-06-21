@@ -1,14 +1,18 @@
 - hosts: localhost
   become: yes
+  vars:
+    ansible_python_interpreter: /usr/bin/python3.10
+  connection: local
   tasks:
-    - name: start a container
+    - name: Start a Docker container
       community.docker.docker_container:
         name: abc-application
         image: demsdocker/abctechnologies
         state: started
         ports:
           - "1234:8080"
-      register: out
+      register: container_output
 
-    - debug:
-        var: out
+    - name: Show container output
+      debug:
+        var: container_output

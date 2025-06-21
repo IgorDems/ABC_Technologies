@@ -58,63 +58,31 @@ pipeline {
             }
         }
 
-        stage('Deploy to Kubernetes') {
-            steps {
-                script {
-                    try {
-                        // Method 1: Using kubeconfig file approach
-                        withCredentials([
-                            string(credentialsId: 'kube-server', variable: 'KUBE_SERVER'),
-                            string(credentialsId: 'kube-ca-data', variable: 'KUBE_CA_DATA'),
-                            string(credentialsId: 'kube-client-cert', variable: 'KUBE_CLIENT_CERT'),
-                            string(credentialsId: 'kube-client-key', variable: 'KUBE_CLIENT_KEY')
-                        ]) {
-                            // Create kubeconfig file
-                            def kubeconfigContent = """
-apiVersion: v1
-clusters:
-- cluster:
-    certificate-authority-data: ${env.KUBE_CA_DATA}
-    server: ${env.KUBE_SERVER}
-  name: kubernetes
-contexts:
-- context:
-    cluster: kubernetes
-    user: kubernetes-admin
-  name: kubernetes-admin@kubernetes
-current-context: kubernetes-admin@kubernetes
-kind: Config
-preferences: {}
-users:
-- name: kubernetes-admin
-  user:
-    client-certificate-data: ${env.KUBE_CLIENT_CERT}
-    client-key-data: ${env.KUBE_CLIENT_KEY}
-"""
-                            writeFile file: '/tmp/kubeconfig', text: kubeconfigContent
-                            
-                            // Use the kubeconfig file with correct syntax
-                            withKubeConfig([kubeconfigFile: '/tmp/kubeconfig']) {
-                                sh """
-                                    kubectl get nodes
-                                    kubectl create namespace ${NAMESPACE} --dry-run=client -o yaml | kubectl apply -f -
-                                    kubectl apply -f k8s/rbac.yml
-                                    kubectl apply -f k8s/deployment.yml
-                                    kubectl apply -f k8s/service.yml
-                                    kubectl rollout status deployment/abctechnologies-dep -n ${NAMESPACE} --timeout=900s
-                                    kubectl get deployment abctechnologies-dep -n ${NAMESPACE}
-                                """
-                            }
-                        }
-                    } catch (err) {
-                        sh """
-                            kubectl describe pods -n ${NAMESPACE} -l app=abc-tech-app || true
-                            kubectl logs -n ${NAMESPACE} -l app=abc-tech-app --all-containers --tail=100 || true
-                        """
-                        error("Deployment failed: ${err.getMessage()}")
-                    }
+stage('Deploy to Kubernetes') {
+    steps {
+        script {
+            try {
+                // Method 2: Using credential ID directly (if you have a kubeconfig credential)
+                withKubeConfig([credentialsId: 'certificate_file']) {
+                    sh """
+                        kubectl get nodes
+                        kubectl create namespace ${NAMESPACE} --dry-run=client -o yaml | kubectl apply -f -
+                        kubectl apply -f k8s/rbac.yml
+                        kubectl apply -f k8s/deployment.yml
+                        kubectl apply -f k8s/service.yml
+                        kubectl rollout status deployment/abctechnologies-dep -n ${NAMESPACE} --timeout=900s
+                        kubectl get deployment abctechnologies-dep -n ${NAMESPACE}
+                    """
                 }
+            } catch (err) {
+                sh """
+                    kubectl describe pods -n ${NAMESPACE} -l app=abc-tech-app || true
+                    kubectl logs -n ${NAMESPACE} -l app=abc-tech-app --all-containers --tail=100 || true
+                """
+                error("Deployment failed: ${err.getMessage()}")
             }
         }
+    }
+}
     }
 }

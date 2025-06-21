@@ -2,52 +2,41 @@ pipeline {
     agent { label 'agent193' }
 
     environment {
-        DOCKERHUB_CREDENTIALS = credentials('dockerhub_credentials')
-        DOCKER_REGISTRY = 'docker.io'
-        NAMESPACE = 'abc-tech'
-        APP_NAME = 'abctechnologies'
-        JAVA_HOME = '/usr/lib/jvm/jdk-21-oracle-x64'
-        PATH = "$JAVA_HOME/bin:/usr/share/maven/bin:${env.PATH}"
-        MAVEN_HOME = '/usr/share/maven'
-        MAVEN_OPTS = '-Dmaven.repo.local=/var/jenkins-agent/.m2/repository'
+        DOCKER_IMAGE = "abctechnologies"
+        DOCKER_HUB = "demsdocker"
     }
 
     stages {
         stage('Checkout') {
-            steps { checkout scm }
+            steps {
+                git branch: 'fix4docker', url: 'https://github.com/IgorDems/ABC_Technologies.git'
+            }
         }
 
         stage('Build') {
             steps {
-                sh '''
-                    echo "Java:" && java -version
-                    echo "Maven:" && mvn -version
-                    /usr/bin/mvn clean install -Dmaven.test.skip=true -Dmaven.repo.local=/var/jenkins-agent/.m2/repository
-                '''
-            }
-            post {
-                success {
-                    archiveArtifacts artifacts: '**/target/*.war', fingerprint: true
-                }
+                sh 'echo Java:'
+                sh 'java -version'
+                sh 'echo Maven:'
+                sh 'mvn -version'
+                sh 'mvn clean install -Dmaven.test.skip=true -Dmaven.repo.local=$HOME/.m2/repository'
             }
         }
 
         stage('Build Docker Image') {
             steps {
                 script {
-                    docker.build("abctechnologies", "-f Dockerfile .")
+                    sh "docker build -t ${DOCKER_IMAGE} ."
                 }
             }
         }
 
         stage('Push Docker Image') {
             steps {
-                withCredentials([usernamePassword(credentialsId: 'dockerhub_credentials', usernameVariable: 'DOCKER_USERNAME', passwordVariable: 'DOCKER_PASSWORD')]) {
-                    sh '''
-                        docker login -u $DOCKER_USERNAME -p $DOCKER_PASSWORD
-                        docker tag abctechnologies $DOCKER_USERNAME/abctechnologies
-                        docker push $DOCKER_USERNAME/abctechnologies
-                    '''
+                withCredentials([usernamePassword(credentialsId: 'dockerhub_creds', usernameVariable: 'DOCKER_USERNAME', passwordVariable: 'DOCKER_PASSWORD')]) {
+                    sh "docker login -u $DOCKER_USERNAME -p $DOCKER_PASSWORD"
+                    sh "docker tag ${DOCKER_IMAGE} ${DOCKER_HUB}/${DOCKER_IMAGE}"
+                    sh "docker push ${DOCKER_HUB}/${DOCKER_IMAGE}"
                 }
             }
         }
@@ -58,32 +47,39 @@ pipeline {
             }
         }
 
-stage('Deploy to Kubernetes') {
-    steps {
-        script {
-            try {
-                // Method 2: Using credential ID directly (if you have a kubeconfig credential)
+        stage('Deploy to Kubernetes') {
+            steps {
                 withKubeConfig([credentialsId: 'certificate_file']) {
-                    sh """
-                        kubectl get nodes
-                        kubectl create namespace ${NAMESPACE} --dry-run=client -o yaml | kubectl apply -f -
-                        kubectl create namespace metallb-system --dry-run=client -o yaml | kubectl apply -f -
-                        kubectl apply -f k8s/rbac.yml
-                        kubectl apply -f k8s/deployment.yml
-                        kubectl apply -f k8s/service.yml
-                        kubectl rollout status deployment/abctechnologies-dep -n ${NAMESPACE} --timeout=900s
-                        kubectl get deployment abctechnologies-dep -n ${NAMESPACE}
-                    """
+                    sh 'kubectl get nodes'
+                    sh 'kubectl create namespace abc-tech --dry-run=client -o yaml | kubectl apply -f -'
+                    sh 'kubectl create namespace metallb-system --dry-run=client -o yaml | kubectl apply -f -'
+                    sh 'kubectl apply -f k8s/rbac.yml'
+                    sh 'kubectl apply -f k8s/deployment.yml'
+                    sh 'kubectl apply -f k8s/service.yml'
+
+                    // ❗ FIXED LINE
+                    sh 'kubectl rollout status deployment/abc-tech-deployment -n abc-tech --timeout=900s'
                 }
-            } catch (err) {
-                sh """
-                    kubectl describe pods -n ${NAMESPACE} -l app=abc-tech-app || true
-                    kubectl logs -n ${NAMESPACE} -l app=abc-tech-app --all-containers --tail=100 || true
-                """
-                error("Deployment failed: ${err.getMessage()}")
+            }
+        }
+
+        stage('Check Deployed App') {
+            steps {
+                withKubeConfig([credentialsId: 'certificate_file']) {
+                    sh 'kubectl get pods -n abc-tech'
+                    sh 'kubectl describe pods -n abc-tech -l app=abc-tech-app'
+                    sh 'kubectl logs -n abc-tech -l app=abc-tech-app --all-containers --tail=100'
+                }
             }
         }
     }
-}
+
+    post {
+        failure {
+            echo '❌ Deployment failed.'
+        }
+        success {
+            echo '✅ Pipeline completed successfully!'
+        }
     }
 }

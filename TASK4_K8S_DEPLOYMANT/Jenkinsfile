@@ -9,7 +9,7 @@ pipeline {
     stages {
         stage('Checkout') {
             steps {
-                git branch: 'fix4docker', url: 'https://github.com/IgorDems/ABC_Technologies.git'
+                git branch: 'main', url: 'https://github.com/IgorDems/ABC_Technologies.git'
             }
         }
 
